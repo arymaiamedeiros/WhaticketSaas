@@ -1,0 +1,92 @@
+groups:
+  - name: whaticket
+    rules:
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_user_seconds_total[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High CPU usage detected
+          description: CPU usage is above 80% for 5 minutes
+
+      - alert: HighMemoryUsage
+        expr: (process_resident_memory_bytes / 1024 / 1024) > 1024
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High memory usage detected
+          description: Memory usage is above 1GB for 5 minutes
+
+      - alert: HighLatency
+        expr: rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High latency detected
+          description: Average response time is above 1 second for 5 minutes
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: High error rate detected
+          description: Error rate is above 5% for 5 minutes
+
+      - alert: DatabaseConnectionIssues
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Database connection issues
+          description: Unable to connect to PostgreSQL database
+
+      - alert: RedisConnectionIssues
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Redis connection issues
+          description: Unable to connect to Redis
+
+      - alert: WhatsAppDisconnected
+        expr: whatsapp_connection_status == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: WhatsApp disconnected
+          description: WhatsApp connection is down
+
+      - alert: QueueBacklog
+        expr: redis_list_length{queue="messages"} > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Queue backlog detected
+          description: Message queue has more than 1000 pending messages
+
+      - alert: DiskSpaceRunningLow
+        expr: node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} * 100 < 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Low disk space
+          description: Less than 10% disk space remaining
+
+      - alert: TooManyRequests
+        expr: rate(http_requests_total[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Too many requests
+          description: More than 1000 requests per second for 5 minutes 
