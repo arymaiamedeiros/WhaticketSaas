@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Avatar, CardHeader } from "@mui/material";
 
 import { i18n } from "../../translate/i18n";
+import api from "../../services/api";
+import { toastError } from "../../utils/toast";
 
-const TicketInfo = ({ contact, ticket, onClick }) => {
+const TicketInfo = ({ contact, ticket }) => {
 	const { user } = ticket
 	const [userName, setUserName] = useState('')
 	const [contactName, setContactName] = useState('')
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		if (contact) {
@@ -30,9 +34,29 @@ const TicketInfo = ({ contact, ticket, onClick }) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
+	const handleUpdateTicketStatus = async (e, status, userId) => {
+		setLoading(true);
+		try {
+			await api.put(`/tickets/${ticket.id}`, {
+				status: status,
+				userId: userId || null,
+			});
+
+			setLoading(false);
+			if (status === "open") {
+				navigate(`/tickets/${ticket.id}`);
+			} else {
+				navigate("/tickets");
+			}
+		} catch (err) {
+			setLoading(false);
+			toastError(err);
+		}
+	};
+
 	return (
 		<CardHeader
-			onClick={onClick}
+			onClick={() => handleUpdateTicketStatus(null, "open", user ? user.id : null)}
 			style={{ cursor: "pointer" }}
 			titleTypographyProps={{ noWrap: true }}
 			subheaderTypographyProps={{ noWrap: true }}

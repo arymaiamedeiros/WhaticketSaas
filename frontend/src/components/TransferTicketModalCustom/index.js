@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import { 
     Button,
@@ -36,7 +36,7 @@ const filterOptions = createFilterOptions({
 });
 
 const TransferTicketModalCustom = ({ modalOpen, onClose, ticketid }) => {
-    const history = useHistory();
+    const navigate = useNavigate();
     const [options, setOptions] = useState([]);
     const [queues, setQueues] = useState([]);
     const [allQueues, setAllQueues] = useState([]);
@@ -148,7 +148,7 @@ const TransferTicketModalCustom = ({ modalOpen, onClose, ticketid }) => {
             }
             await api.put(`/tickets/${ticketid}`, data);
 
-            history.push(`/tickets`);
+            navigate("/tickets");
         } catch (err) {
             setLoading(false);
             toastError(err);

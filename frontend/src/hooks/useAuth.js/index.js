@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { has, isArray } from "lodash";
 
 import { toast } from "react-toastify";
@@ -10,7 +10,7 @@ import toastError from "../../errors/toastError";
 import { socketConnection } from "../../services/socket";
 import moment from "moment";
 const useAuth = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [isAuth, setIsAuth] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState({});
@@ -132,7 +132,7 @@ const useAuth = () => {
         if (Math.round(dias) < 5) {
           toast.warn(`Sua assinatura vence em ${Math.round(dias)} ${Math.round(dias) === 1 ? 'dia' : 'dias'} `);
         }
-        history.push("/tickets");
+        navigate("/tickets");
         setLoading(false);
       } else {
         toastError(`Opss! Sua assinatura venceu ${vencimento}.
@@ -160,7 +160,7 @@ Entre em contato com o Suporte para mais informações! `);
       localStorage.removeItem("cshow");
       api.defaults.headers.Authorization = undefined;
       setLoading(false);
-      history.push("/login");
+      navigate("/login");
     } catch (err) {
       toastError(err);
       setLoading(false);

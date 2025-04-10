@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import * as Yup from "yup";
 import { Formik, Form, Field } from "formik";
 import { toast } from "react-toastify";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { styled } from '@mui/material/styles';
 import { green } from '@mui/material/colors';
 import Button from "@mui/material/Button";
@@ -67,7 +67,7 @@ const ScheduleSchema = Yup.object().shape({
 });
 
 const ScheduleModal = ({ open, onClose, scheduleId, contactId, cleanContact, reload }) => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const { user } = useContext(AuthContext);
 
 	const initialState = {
@@ -131,6 +131,13 @@ const ScheduleModal = ({ open, onClose, scheduleId, contactId, cleanContact, rel
 
 	const handleClose = () => {
 		onClose();
+		if (cleanContact) {
+			cleanContact();
+		}
+		if (reload) {
+			reload();
+		}
+		navigate("/schedules");
 		setAttachment(null);
 		setSchedule(initialState);
 	};
@@ -170,7 +177,7 @@ const ScheduleModal = ({ open, onClose, scheduleId, contactId, cleanContact, rel
 			if (contactId) {
 				if (typeof cleanContact === 'function') {
 					cleanContact();
-					history.push('/schedules');
+					navigate('/schedules');
 				}
 			}
 		} catch (err) {

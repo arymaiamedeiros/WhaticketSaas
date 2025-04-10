@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { styled } from '@mui/material/styles';
 import {
   Paper,
@@ -137,7 +137,7 @@ const SmallFormControl = styled(Box)({
 });
 
 const TicketsManagerTabs = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const [searchParam, setSearchParam] = useState("");
 	const [tab, setTab] = useState("open");
 	const [tabOpen, setTabOpen] = useState("open");
@@ -202,7 +202,7 @@ const TicketsManagerTabs = () => {
 	const handleCloseOrOpenTicket = (ticket) => {
 		setNewTicketModalOpen(false);
 		if (ticket !== undefined && ticket.uuid !== undefined) {
-			history.push(`/tickets/${ticket.uuid}`);
+			navigate(`/tickets/${ticket.uuid}`);
 		}
 	};
 

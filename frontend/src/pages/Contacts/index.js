@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useReducer, useContext } from "react";
 import { toast } from "react-toastify";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { styled } from '@mui/material/styles';
 import {
   Table,
@@ -90,7 +90,7 @@ const reducer = (state, action) => {
 };
 
 const Contacts = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
@@ -166,7 +166,7 @@ const Contacts = () => {
   const handleCloseOrOpenTicket = (ticket) => {
     setNewTicketModalOpen(false);
     if (ticket !== undefined && ticket.uuid !== undefined) {
-      history.push(`/tickets/${ticket.uuid}`);
+      navigate(`/tickets/${ticket.uuid}`);
     }
   };
 
@@ -190,7 +190,7 @@ const Contacts = () => {
   const handleimportContact = async () => {
     try {
       await api.post("/contacts/import");
-      history.go(0);
+      navigate(0);
     } catch (err) {
       toastError(err);
     }

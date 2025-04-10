@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { Formik, Form } from "formik";
@@ -106,7 +106,10 @@ const Login = () => {
     try {
       const { data } = await api.post("/auth/login", values);
       dispatch(login(data));
-      navigate("/");
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      api.defaults.headers.Authorization = `Bearer ${data.token}`;
+      navigate("/tickets");
     } catch (err) {
       toast.error(err.response?.data?.error || "Erro ao fazer login");
     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { styled } from '@mui/material/styles';
 import {
   Paper,
@@ -263,6 +263,7 @@ const MessageInputCustom = (props) => {
   const [signMessage, setSignMessage] = useLocalStorage("signOption", true);
   const [typeBar, setShowTypeBar] = useLocalStorage("showTypeBar", true);
   const [anchorEl, setAnchorEl] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     inputRef.current.focus();
@@ -465,6 +466,17 @@ const MessageInputCustom = (props) => {
   useHotkeys("enter", () => {
     debouncedHandleSendMessage();
   });
+
+  const handleNavigateToTicket = (ticketId) => {
+    setLoading(true);
+    try {
+      navigate(`/tickets/${ticketId}`);
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      toastError(err);
+    }
+  };
 
   if (medias.length > 0)
     return (

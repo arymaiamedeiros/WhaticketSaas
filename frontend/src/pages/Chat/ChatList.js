@@ -24,7 +24,7 @@ import {
   Edit as EditIcon
 } from '@mui/icons-material';
 import { green } from '@mui/material/colors';
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { useDate } from "../../hooks/useDate";
 import { i18n } from "../../translate/i18n";
@@ -106,7 +106,7 @@ export default function ChatList({
   pageInfo,
   loading,
 }) {
-  const history = useHistory();
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const { datetimeToClient } = useDate();
 
@@ -123,7 +123,7 @@ export default function ChatList({
     }
 
     if (id !== chat.uuid) {
-      history.push(`/chats/${chat.uuid}`);
+      navigate(`/chats/${chat.uuid}`);
       handleSelectChat(chat);
     }
   };

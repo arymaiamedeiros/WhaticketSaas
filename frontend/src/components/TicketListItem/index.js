@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { parseISO, format, isSameDay } from "date-fns";
 import clsx from "clsx";
 
@@ -103,7 +103,7 @@ const useStyles = makeStyles((theme) => ({
 
 const TicketListItem = ({ ticket }) => {
   const classes = useStyles();
-  const history = useHistory();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const { ticketId } = useParams();
   const isMounted = useRef(true);
@@ -115,26 +115,28 @@ const TicketListItem = ({ ticket }) => {
     };
   }, []);
 
-  const handleAcepptTicket = async (ticket) => {
+  const handleUpdateTicketStatus = async (e, status, userId) => {
     setLoading(true);
     try {
       await api.put(`/tickets/${ticket.id}`, {
-        status: "open",
-        userId: user?.id,
+        status: status,
+        userId: userId || null,
       });
+
+      setLoading(false);
+      if (status === "open") {
+        navigate(`/tickets/${ticket.id}`);
+      } else {
+        navigate("/tickets");
+      }
     } catch (err) {
       setLoading(false);
       toastError(err);
     }
-    if (isMounted.current) {
-      setLoading(false);
-    }
-    history.push(`/tickets/${ticket.uuid}`);
   };
-  console.log("🚀 Console Log : ticket.lastMessage", ticket.lastMessage);
 
   const handleSelectTicket = (ticket) => {
-    history.push(`/tickets/${ticket.uuid}`);
+    navigate(`/tickets/${ticket.uuid}`);
   };
 
   return (
@@ -183,47 +185,8 @@ const TicketListItem = ({ ticket }) => {
                   color="primary"
                 />
               )}
-{/*               {ticket.lastMessage && (
-                <Typography
-                  className={classes.lastMessageTime}
-                  component="span"
-                  variant="body2"
-                  color="textSecondary"
-                >
-                  {isSameDay(parseISO(ticket.updatedAt), new Date()) ? (
-                    <>{format(parseISO(ticket.updatedAt), "HH:mm")}</>
-                  ) : (
-                    <>{format(parseISO(ticket.updatedAt), "dd/MM/yyyy")}</>
-                  )}
-                </Typography>
-              )} */}
             </span>
           }
-/*           secondary={
-            <span className={classes.contactNameWrapper}>
-              <Typography
-                className={classes.contactLastMessage}
-                noWrap
-                component="span"
-                variant="body2"
-                color="textSecondary"
-              >
-                {ticket.lastMessage ? (
-                  <MarkdownWrapper>{ticket.lastMessage}</MarkdownWrapper>
-                ) : (
-                  <MarkdownWrapper></MarkdownWrapper>
-                )}
-              </Typography>
-
-              <Badge
-                className={classes.newMessagesCount}
-                badgeContent={ticket.unreadMessages}
-                classes={{
-                  badge: classes.badgeStyle,
-                }}
-              />
-            </span>
-          } */
         />
         {ticket.status === "pending" && (
           <ButtonWithSpinner
@@ -232,7 +195,7 @@ const TicketListItem = ({ ticket }) => {
             className={classes.acceptButton}
             size="small"
             loading={loading}
-            onClick={(e) => handleAcepptTicket(ticket)}
+            onClick={(e) => handleUpdateTicketStatus(e, "open", user?.id)}
           >
             {i18n.t("ticketsList.buttons.accept")}
           </ButtonWithSpinner>

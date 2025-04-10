@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { socketConnection } from "../../services/socket";
 import useSound from "use-sound";
@@ -37,9 +37,9 @@ const PopoverPaper = styled(Box)(({ theme }) => ({
 }));
 
 const NotificationsPopOver = (volume) => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const { user } = useContext(AuthContext);
-	const ticketIdUrl = +history.location.pathname.split("/")[2];
+	const ticketIdUrl = +navigate.location.pathname.split("/")[2];
 	const ticketIdRef = useRef(ticketIdUrl);
 	const anchorEl = useRef();
 	const [isOpen, setIsOpen] = useState(false);
@@ -49,7 +49,7 @@ const NotificationsPopOver = (volume) => {
 	const { tickets } = useTickets({ withUnreadMessages: "true" });
 	const [play] = useSound(alertSound, volume);
 	const soundAlertRef = useRef();
-	const historyRef = useRef(history);
+	const navigateRef = useRef(navigate);
 
 	useEffect(() => {
 		const fetchSettings = async () => {
@@ -171,7 +171,7 @@ const NotificationsPopOver = (volume) => {
 		notification.onclick = e => {
 			e.preventDefault();
 			window.focus();
-			historyRef.current.push(`/tickets/${ticket.uuid}`);
+			navigateRef.current.push(`/tickets/${ticket.uuid}`);
 		};
 
 		setDesktopNotifications(prevState => {
@@ -198,6 +198,12 @@ const NotificationsPopOver = (volume) => {
 
 	const NotificationTicket = ({ children }) => {
 		return <div onClick={handleClickAway}>{children}</div>;
+	};
+
+	const handleNotificationClick = (notification) => {
+		if (notification.ticketId) {
+			navigate(`/tickets/${notification.ticketId}`);
+		}
 	};
 
 	return (

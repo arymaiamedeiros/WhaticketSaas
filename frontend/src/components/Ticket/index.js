@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useParams, useHistory } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import { toast } from "react-toastify";
 import clsx from "clsx";
@@ -58,7 +58,7 @@ const useStyles = makeStyles((theme) => ({
 
 const Ticket = () => {
   const { ticketId } = useParams();
-  const history = useHistory();
+  const navigate = useNavigate();
   const classes = useStyles();
 
   const { user } = useContext(AuthContext);
@@ -80,7 +80,7 @@ const Ticket = () => {
           const queueAllowed = queues.find((q) => q.id === queueId);
           if (queueAllowed === undefined && profile !== "admin") {
             toast.error("Acesso não permitido");
-            history.push("/tickets");
+            navigate("/tickets");
             return;
           }
 
@@ -95,7 +95,7 @@ const Ticket = () => {
       fetchTicket();
     }, 500);
     return () => clearTimeout(delayDebounceFn);
-  }, [ticketId, user, history]);
+  }, [ticketId, user, navigate]);
 
   useEffect(() => {
     const companyId = localStorage.getItem("companyId");
@@ -110,7 +110,7 @@ const Ticket = () => {
 
       if (data.action === "delete") {
         toast.success("Ticket deleted sucessfully.");
-        history.push("/tickets");
+        navigate("/tickets");
       }
     });
 
@@ -128,7 +128,7 @@ const Ticket = () => {
     return () => {
       socket.disconnect();
     };
-  }, [ticketId, ticket, history]);
+  }, [ticketId, ticket, navigate]);
 
   const handleDrawerOpen = () => {
     setDrawerOpen(true);

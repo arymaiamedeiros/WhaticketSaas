@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useReducer, useState } from "react";
-import { Link as RouterLink, useHistory, useLocation } from "react-router-dom";
+import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
 import { styled } from '@mui/material/styles';
 import {
   ListItem,
@@ -143,6 +143,7 @@ const MainListItems = (props) => {
   const [searchParam] = useState("");
   const [chats, dispatch] = useReducer(reducer, []);
   const { getPlanCompany } = usePlans();
+  const navigate = useNavigate();
 
   useEffect(() => {
     dispatch({ type: "RESET" });
@@ -362,14 +363,14 @@ const MainListItems = (props) => {
             </StyledListItem>
             <StyledCollapse in={openCampaignSubmenu} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
-                <StyledListItem onClick={() => history.push("/campaigns")} button>
+                <StyledListItem onClick={() => navigate("/campaigns")} button>
                   <StyledListItemIcon>
                     <PeopleIcon />
                   </StyledListItemIcon>
                   <StyledListItemText primary="Listagem" />
                 </StyledListItem>
                 <StyledListItem
-                  onClick={() => history.push("/contact-lists")}
+                  onClick={() => navigate("/contact-lists")}
                   button
                 >
                   <StyledListItemIcon>
@@ -378,7 +379,7 @@ const MainListItems = (props) => {
                   <StyledListItemText primary="Listas de Contatos" />
                 </StyledListItem>
                 <StyledListItem
-                  onClick={() => history.push("/campaigns-config")}
+                  onClick={() => navigate("/campaigns-config")}
                   button
                 >
                   <StyledListItemIcon>

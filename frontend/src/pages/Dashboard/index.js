@@ -13,6 +13,7 @@ import {
   Typography,
   Box
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 // ICONS
 import SpeedIcon from "@mui/icons-material/Speed";
@@ -141,6 +142,7 @@ const Dashboard = () => {
     connections: [],
     messages: [],
   });
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function firstLoad() {
@@ -292,6 +294,17 @@ const Dashboard = () => {
       </Grid>
     );
   }
+
+  const handleNavigateToTickets = () => {
+    setLoading(true);
+    try {
+      navigate("/tickets");
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      toast.error(i18n.t("dashboard.messages.navigateError"));
+    }
+  };
 
   return (
     <Root>

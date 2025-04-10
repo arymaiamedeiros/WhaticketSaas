@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useReducer } from "react";
 import { toast } from "react-toastify";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { styled } from '@mui/material/styles';
 import {
   Paper,
@@ -87,7 +87,7 @@ const reducer = (state, action) => {
 };
 
 const ContactLists = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
@@ -187,7 +187,7 @@ const ContactLists = () => {
   };
 
   const goToContacts = (id) => {
-    history.push(`/contact-lists/${id}/contacts`);
+    navigate(`/contact-lists/${id}/contacts`);
   };
 
   return (

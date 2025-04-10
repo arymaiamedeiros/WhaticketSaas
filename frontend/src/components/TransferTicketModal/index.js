@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useHistory } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
@@ -23,7 +23,7 @@ const filterOptions = createFilterOptions({
 });
 
 const TransferTicketModal = ({ modalOpen, onClose, ticketid }) => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const [options, setOptions] = useState([]);
 	const [loading, setLoading] = useState(false);
 	const [searchParam, setSearchParam] = useState("");
@@ -60,18 +60,17 @@ const TransferTicketModal = ({ modalOpen, onClose, ticketid }) => {
 		setSelectedUser(null);
 	};
 
-	const handleSaveTicket = async e => {
-		e.preventDefault();
-		if (!ticketid || !selectedUser) return;
+	const handleTransferTicket = async () => {
+		if (!selectedUser) return;
 		setLoading(true);
 		try {
 			await api.put(`/tickets/${ticketid}`, {
-				userId: selectedUser.id,
-				queueId: null,
 				status: "open",
+				userId: selectedUser,
 			});
+			onClose();
 			setLoading(false);
-			history.push(`/tickets`);
+			navigate("/tickets");
 		} catch (err) {
 			setLoading(false);
 			toastError(err);
@@ -80,7 +79,7 @@ const TransferTicketModal = ({ modalOpen, onClose, ticketid }) => {
 
 	return (
 		<Dialog open={modalOpen} onClose={handleClose} maxWidth="lg" scroll="paper">
-			<form onSubmit={handleSaveTicket}>
+			<form onSubmit={handleTransferTicket}>
 				<DialogTitle id="form-dialog-title">
 					{i18n.t("transferTicketModal.title")}
 				</DialogTitle>

@@ -5,7 +5,7 @@ import { AuthContext } from "../../context/Auth/AuthContext";
 import Board from 'react-trello';
 import { toast } from "react-toastify";
 import { i18n } from "../../translate/i18n";
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { socketConnection } from "../../services/socket";
 import { Button } from "@mui/material";
 
@@ -28,7 +28,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
 }));
 
 const Kanban = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [tags, setTags] = useState([]);
   const [reloadData, setReloadData] = useState(false);
@@ -148,7 +148,7 @@ const Kanban = () => {
   };
 
   const handleCardClick = (uuid) => {  
-    history.push('/tickets/' + uuid);
+    navigate('/tickets/' + uuid);
   };
 
   useEffect(() => {

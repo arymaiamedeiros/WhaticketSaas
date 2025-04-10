@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { styled } from '@mui/material/styles';
 import qs from 'query-string'
 import * as Yup from "yup";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Link as RouterLink } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Formik, Form, Field } from "formik";
@@ -76,7 +76,7 @@ const UserSchema = Yup.object().shape({
 });
 
 const SignUp = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	let companyId = null;
 
 	const params = qs.parse(window.location.search);
@@ -107,7 +107,7 @@ const SignUp = () => {
 		try {
 			await openApi.post("/companies/cadastro", values);
 			toast.success(i18n.t("signup.toasts.success"));
-			history.push("/login");
+			navigate("/login");
 		} catch (err) {
 			console.log(err);
 			toastError(err);

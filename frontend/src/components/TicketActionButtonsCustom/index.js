@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import { IconButton, Tooltip, createTheme, ThemeProvider } from "@mui/material";
 import { MoreVert, Replay } from "@mui/icons-material";
@@ -26,7 +26,7 @@ const ActionButtonsContainer = styled("div")(({ theme }) => ({
 }));
 
 const TicketActionButtonsCustom = ({ ticket }) => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const [anchorEl, setAnchorEl] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const ticketOptionsMenuOpen = Boolean(anchorEl);
@@ -63,7 +63,7 @@ const TicketActionButtonsCustom = ({ ticket }) => {
 				setCurrentTicket({ ...ticket, code: "#open" });
 			} else {
 				setCurrentTicket({ id: null, code: null })
-				history.push("/tickets");
+				navigate("/tickets");
 			}
 		} catch (err) {
 			setLoading(false);

@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import { toast } from "react-toastify";
 
@@ -14,7 +14,7 @@ export const useAuth = () => {
 };
 
 const AuthProvider = ({ children }) => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [isAuth, setIsAuth] = useState(false);
@@ -31,22 +31,19 @@ const AuthProvider = ({ children }) => {
 		setLoading(false);
 	}, []);
 
-	const handleLogin = async (userData) => {
+	const handleLogin = async (email, password) => {
+		setLoading(true);
 		try {
-			const { data } = await api.post("/auth/login", userData);
-			const { token, user } = data;
-
-			localStorage.setItem("token", token);
-			localStorage.setItem("user", JSON.stringify(user));
-
-			api.defaults.headers.Authorization = `Bearer ${token}`;
-			setUser(user);
+			const { data } = await api.post("/auth/login", { email, password });
+			localStorage.setItem("token", data.token);
+			localStorage.setItem("user", JSON.stringify(data.user));
+			api.defaults.headers.Authorization = `Bearer ${data.token}`;
+			setUser(data.user);
 			setIsAuth(true);
-			history.push("/");
-			toast.success("Login realizado com sucesso!");
+			navigate("/tickets");
 		} catch (err) {
 			toast.error("Erro ao realizar login. Verifique suas credenciais.");
-			throw err;
+			setLoading(false);
 		}
 	};
 
@@ -56,7 +53,7 @@ const AuthProvider = ({ children }) => {
 		api.defaults.headers.Authorization = undefined;
 		setUser(null);
 		setIsAuth(false);
-		history.push("/login");
+		navigate("/login");
 	};
 
 	return (

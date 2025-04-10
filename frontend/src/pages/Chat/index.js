@@ -18,7 +18,7 @@ import {
   useMediaQuery,
   useTheme
 } from "@mui/material";
-import { useParams, useHistory } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ChatList from "./ChatList";
 import ChatMessages from "./ChatMessages";
 import { UsersFilter } from "../../components/UsersFilter";
@@ -161,7 +161,7 @@ export function ChatModal({
 }
 
 function Chat(props) {
-  const history = useHistory();
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const date = useDate();
   const theme = useTheme();
@@ -183,7 +183,7 @@ function Chat(props) {
       const companyId = localStorage.getItem("companyId");
       if (companyId && user.companyId !== companyId) {
         localStorage.removeItem("companyId");
-        history.push("/");
+        navigate("/");
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

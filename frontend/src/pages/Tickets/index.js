@@ -1,5 +1,5 @@
-import React from "react";
-import { useParams } from "react-router-dom";
+import React, { useContext } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import { makeStyles } from "@mui/material/styles";
@@ -50,6 +50,18 @@ const useStyles = makeStyles(theme => ({
 const Chat = () => {
 	const classes = useStyles();
 	const { ticketId } = useParams();
+	const navigate = useNavigate();
+
+	const handleOpenTicketDetail = (ticketId) => {
+		setLoading(true);
+		try {
+			navigate(`/tickets/${ticketId}`);
+			setLoading(false);
+		} catch (err) {
+			setLoading(false);
+			toastError(err);
+		}
+	};
 
 	return (
 		<div className={classes.chatContainer}>

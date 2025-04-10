@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import QRCode from 'react-qr-code';
 import { SuccessContent, Total } from './style';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -13,7 +13,7 @@ function CheckoutSuccess(props) {
   const { pix } = props;
   const [pixString,] = useState(pix.qrcode.qrcode);
   const [copied, setCopied] = useState(false);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const { dateToClient } = useDate();
 
@@ -25,17 +25,28 @@ function CheckoutSuccess(props) {
       if (data.action === "CONCLUIDA") {
         toast.success(`Sua licença foi renovada até ${dateToClient(data.company.dueDate)}!`);
         setTimeout(() => {
-          history.push("/");
+          navigate("/");
         }, 4000);
       }
     });
-  }, [history]);
+  }, [navigate]);
 
   const handleCopyQR = () => {
     setTimeout(() => {
       setCopied(false);
     }, 1 * 1000);
     setCopied(true);
+  };
+
+  const handleBackToTickets = () => {
+    setLoading(true);
+    try {
+      navigate("/tickets");
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      toastError(err);
+    }
   };
 
   return (

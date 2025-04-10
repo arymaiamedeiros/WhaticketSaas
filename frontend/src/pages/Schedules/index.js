@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useReducer, useCallback, useContext } from "react";
 import { toast } from "react-toastify";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { styled } from '@mui/material/styles';
 import {
   Paper,
@@ -106,7 +106,7 @@ const MainPaper = styled(Paper)(({ theme }) => ({
 }));
 
 const Schedules = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);

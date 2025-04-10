@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useReducer, useContext } from "react";
 import { toast } from "react-toastify";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { styled } from "@mui/material/styles";
 import Paper from "@mui/material/Paper";
@@ -89,7 +89,7 @@ const MainPaper = styled(Paper)(({ theme }) => ({
 }));
 
 const Announcements = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
@@ -108,7 +108,7 @@ const Announcements = () => {
       if (!user.super) {
         toast.error("Esta empresa não possui permissão para acessar essa página! Estamos lhe redirecionando.");
         setTimeout(() => {
-          history.push(`/`)
+          navigate("/")
         }, 1000);
       }
     }

@@ -11,7 +11,7 @@ import {
   DialogActions,
   makeStyles,
 } from "@mui/material";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import MessagesList from "../MessagesList";
 import { ReplyMessageProvider } from "../../context/ReplyingMessage/ReplyingMessageContext";
@@ -57,7 +57,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function TicketMessagesDialog({ open, handleClose, ticketId }) {
-  const history = useHistory();
+  const navigate = useNavigate();
   const classes = useStyles();
 
   const { user } = useContext(AuthContext);
@@ -81,7 +81,7 @@ export default function TicketMessagesDialog({ open, handleClose, ticketId }) {
             const queueAllowed = queues.find((q) => q.id === queueId);
             if (queueAllowed === undefined && profile !== "admin") {
               toast.error("Acesso não permitido");
-              history.push("/tickets");
+              navigate("/tickets");
               return;
             }
 
@@ -101,7 +101,7 @@ export default function TicketMessagesDialog({ open, handleClose, ticketId }) {
         clearTimeout(delayDebounceFn);
       }
     };
-  }, [ticketId, user, history, open]);
+  }, [ticketId, user, navigate, open]);
 
   useEffect(() => {
     const companyId = localStorage.getItem("companyId");
@@ -118,7 +118,7 @@ export default function TicketMessagesDialog({ open, handleClose, ticketId }) {
 
         if (data.action === "delete") {
           toast.success("Ticket deleted sucessfully.");
-          history.push("/tickets");
+          navigate("/tickets");
         }
       });
 
@@ -139,7 +139,7 @@ export default function TicketMessagesDialog({ open, handleClose, ticketId }) {
         socket.disconnect();
       }
     };
-  }, [ticketId, ticket, history, open]);
+  }, [ticketId, ticket, navigate, open]);
 
   const handleDrawerOpen = () => {
     setDrawerOpen(true);

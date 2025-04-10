@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { parseISO, format, isSameDay } from "date-fns";
 import { styled } from '@mui/material/styles';
 import { green, grey, red, blue } from '@mui/material/colors';
@@ -179,7 +179,7 @@ const RadiusDot = styled(Badge)({
 });
 
 const TicketListItemCustom = ({ ticket }) => {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [ticketUser, setTicketUser] = useState(null);
   const [ticketQueueName, setTicketQueueName] = useState(null);
@@ -230,7 +230,7 @@ const TicketListItemCustom = ({ ticket }) => {
     if (isMounted.current) {
       setLoading(false);
     }
-    history.push(`/tickets/`);
+    navigate("/tickets/");
   };
 
   const handleReopenTicket = async (id) => {
@@ -251,7 +251,7 @@ const TicketListItemCustom = ({ ticket }) => {
     if (isMounted.current) {
       setLoading(false);
     }
-    history.push(`/tickets/`);
+    navigate("/tickets/");
   };
 
   const handleAcepptTicket = async (id) => {
@@ -272,7 +272,7 @@ const TicketListItemCustom = ({ ticket }) => {
     if (isMounted.current) {
       setLoading(false);
     }
-    history.push(`/tickets/`);
+    navigate("/tickets/");
   };
 
   const handleSendMessage = async (id) => {
@@ -293,12 +293,12 @@ const TicketListItemCustom = ({ ticket }) => {
     if (isMounted.current) {
       setLoading(false);
     }
-    history.push(`/tickets/`);
+    navigate("/tickets/");
   };
 
   const handleSelectTicket = (ticket) => {
     setCurrentTicket(ticket);
-    history.push(`/tickets/${ticket.id}`);
+    navigate(`/tickets/${ticket.id}`);
   };
 
   const renderTicketInfo = () => {

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useReducer } from "react";
 import { toast } from "react-toastify";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
@@ -92,7 +92,7 @@ const reducer = (state, action) => {
 };
 
 const Campaigns = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
@@ -370,7 +370,7 @@ const Campaigns = () => {
                         <IconButton
                           size="small"
                           onClick={() =>
-                            history.push(`/campaigns/${campaign.id}/contacts`)
+                            navigate(`/campaigns/${campaign.id}/contacts`)
                           }
                         >
                           <DescriptionIcon />

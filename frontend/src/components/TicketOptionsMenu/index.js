@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
@@ -18,6 +19,7 @@ const TicketOptionsMenu = ({ ticket, menuOpen, handleClose, anchorEl }) => {
 	const [transferTicketModalOpen, setTransferTicketModalOpen] = useState(false);
 	const isMounted = useRef(true);
 	const { user } = useContext(AuthContext);
+	const navigate = useNavigate();
 
 	const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
 	const [contactId, setContactId] = useState(null);
@@ -41,9 +43,16 @@ const TicketOptionsMenu = ({ ticket, menuOpen, handleClose, anchorEl }) => {
 		handleClose();
 	};
 
-	const handleOpenTransferModal = e => {
-		setTransferTicketModalOpen(true);
-		handleClose();
+	const handleOpenTicketTransferModal = () => {
+		setLoading(true);
+		try {
+			handleClose();
+			navigate(`/tickets/${ticket.id}/transfer`);
+			setLoading(false);
+		} catch (err) {
+			setLoading(false);
+			toastError(err);
+		}
 	};
 
 	const handleCloseTransferTicketModal = () => {
@@ -84,7 +93,7 @@ const TicketOptionsMenu = ({ ticket, menuOpen, handleClose, anchorEl }) => {
 				<MenuItem onClick={handleOpenScheduleModal}>
 					{i18n.t("ticketOptionsMenu.schedule")}
 				</MenuItem>
-				<MenuItem onClick={handleOpenTransferModal}>
+				<MenuItem onClick={handleOpenTicketTransferModal}>
 					{i18n.t("ticketOptionsMenu.transfer")}
 				</MenuItem>
 				<Can

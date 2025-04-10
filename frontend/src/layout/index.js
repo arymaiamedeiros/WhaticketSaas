@@ -42,7 +42,7 @@ import { socketConnection } from "../services/socket";
 import ChatPopover from "../pages/Chat/ChatPopover";
 import { useDate } from "../hooks/useDate";
 import ColorModeContext from "../layout/themeContext";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { WhatsAppsContext } from "../context/WhatsApp/WhatsAppsContext";
 import { TicketsContext } from "../context/Tickets/TicketsContext";
@@ -159,7 +159,7 @@ const Layout = ({ children }) => {
   const [chatAnchorEl, setChatAnchorEl] = useState(null);
   const [connectionWarning, setConnectionWarning] = useState(false);
 
-  const history = useHistory();
+  const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -271,7 +271,7 @@ const Layout = ({ children }) => {
 
   const handleProfileClick = () => {
     handleUserMenuClose();
-    history.push("/profile");
+    navigate("/profile");
   };
 
   const handleUserModalOpen = () => {
