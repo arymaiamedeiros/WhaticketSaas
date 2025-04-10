@@ -1,184 +1,238 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { styled } from '@mui/material/styles';
 import {
-  Box,
-  FormControl,
-  IconButton,
-  Input,
-  InputAdornment,
-  makeStyles,
   Paper,
+  IconButton,
+  InputBase,
+  CircularProgress,
   Typography,
-} from "@material-ui/core";
-import SendIcon from "@material-ui/icons/Send";
-
-import { AuthContext } from "../../context/Auth/AuthContext";
+  Box,
+  Avatar,
+  AppBar,
+  Toolbar
+} from "@mui/material";
+import {
+  Send as SendIcon,
+  ArrowBack as ArrowBackIcon,
+  Close as CloseIcon,
+  AttachFile as AttachFileIcon,
+  MoreVert as MoreVertIcon
+} from '@mui/icons-material';
+import { green } from '@mui/material/colors';
 import { useDate } from "../../hooks/useDate";
+import { i18n } from "../../translate/i18n";
 import api from "../../services/api";
-import { green } from "@material-ui/core/colors";
+import toastError from "../../errors/toastError";
 
-const useStyles = makeStyles((theme) => ({
-  mainContainer: {
-    display: "flex",
-    flexDirection: "column",
-    position: "relative",
-    flex: 1,
-    overflow: "hidden",
-    borderRadius: 0,
-    height: "100%",
-    borderLeft: "1px solid rgba(0, 0, 0, 0.12)",
-  },
-  messageList: {
-    position: "relative",
-    overflowY: "auto",
-    height: "100%",
-    ...theme.scrollbarStyles,
-    backgroundColor: theme.palette.chatlist,
-  },
-  inputArea: {
-    position: "relative",
-    height: "auto",
-  },
-  input: {
-    padding: "20px",
-  },
-  buttonSend: {
-    margin: theme.spacing(1),
-  },
-  boxLeft: {
-    padding: "10px 10px 5px",
-    margin: "10px",
-    position: "relative",
-    backgroundColor: "blue",
-    maxWidth: 300,
-    borderRadius: 10,
-    borderBottomLeftRadius: 0,
-    border: "1px solid rgba(0, 0, 0, 0.12)",
-  },
-  boxRight: {
-    padding: "10px 10px 5px",
-    margin: "10px 10px 10px auto",
-    position: "relative",
-    backgroundColor: "green",
-    textAlign: "right",
-    maxWidth: 300,
-    borderRadius: 10,
-    borderBottomRightRadius: 0,
-    border: "1px solid rgba(0, 0, 0, 0.12)",
-  },
+const Container = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  height: "100%",
+  background: theme.palette.background.default,
 }));
 
-export default function ChatMessages({
-  chat,
-  messages,
-  handleSendMessage,
-  handleLoadMore,
-  scrollToBottomRef,
-  pageInfo,
-  loading,
-}) {
-  const classes = useStyles();
-  const { user } = useContext(AuthContext);
-  const { datetimeToClient } = useDate();
-  const baseRef = useRef();
+const Header = styled(AppBar)(({ theme }) => ({
+  position: "relative",
+  background: theme.palette.background.paper,
+  color: theme.palette.text.primary,
+  boxShadow: "none",
+  borderBottom: `1px solid ${theme.palette.divider}`,
+}));
 
-  const [contentMessage, setContentMessage] = useState("");
+const ContactInfo = styled(Box)({
+  display: "flex",
+  alignItems: "center",
+  padding: "8px 0",
+});
 
-  const scrollToBottom = () => {
-    if (baseRef.current) {
-      baseRef.current.scrollIntoView({});
-    }
-  };
+const MessagesList = styled(Box)(({ theme }) => ({
+  flex: 1,
+  overflowY: "scroll",
+  padding: theme.spacing(2),
+  ...theme.scrollbarStyles,
+}));
 
-  const unreadMessages = (chat) => {
-    if (chat !== undefined) {
-      const currentUser = chat.users.find((u) => u.userId === user.id);
-      return currentUser.unreads > 0;
-    }
-    return 0;
-  };
+const InputContainer = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(1, 2),
+  display: "flex",
+  alignItems: "center",
+  background: theme.palette.background.paper,
+}));
+
+const MessageBubble = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "isMe",
+})(({ theme, isMe }) => ({
+  background: isMe ? green[500] : theme.palette.background.paper,
+  color: isMe ? theme.palette.common.white : theme.palette.text.primary,
+  padding: theme.spacing(1, 2),
+  borderRadius: 16,
+  marginBottom: theme.spacing(1),
+  maxWidth: "80%",
+  alignSelf: isMe ? "flex-end" : "flex-start",
+  boxShadow: theme.shadows[1],
+}));
+
+const MessageTime = styled(Typography)(({ theme }) => ({
+  fontSize: "0.75rem",
+  color: "inherit",
+  opacity: 0.6,
+  marginLeft: theme.spacing(1),
+}));
+
+const ChatMessages = ({ contact, handleClose }) => {
+  const date = useDate();
+  const scrollRef = useRef();
+  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [message, setMessage] = useState("");
+  const [attachment, setAttachment] = useState(null);
 
   useEffect(() => {
-    if (unreadMessages(chat) > 0) {
-      try {
-        api.post(`/chats/${chat.id}/read`, { userId: user.id });
-      } catch (err) {}
-    }
-    scrollToBottomRef.current = scrollToBottom;
+    loadMessages();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [contact.id, pageNumber]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const loadMessages = async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.get(`/messages/${contact.id}`, {
+        params: { pageNumber },
+      });
+      setMessages((prev) => [...data.messages, ...prev]);
+      setHasMore(data.hasMore);
+    } catch (err) {
+      toastError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleScroll = (e) => {
+    if (!hasMore) return;
     const { scrollTop } = e.currentTarget;
-    if (!pageInfo.hasMore || loading) return;
-    if (scrollTop < 600) {
-      handleLoadMore();
+    if (scrollTop === 0) {
+      setPageNumber((prev) => prev + 1);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!message.trim() && !attachment) return;
+
+    try {
+      const formData = new FormData();
+      if (attachment) {
+        formData.append("file", attachment);
+      }
+      formData.append("message", message);
+
+      await api.post(`/messages/${contact.id}`, formData);
+      setMessage("");
+      setAttachment(null);
+      loadMessages();
+    } catch (err) {
+      toastError(err);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSendMessage();
+    }
+  };
+
+  const handleUploadFile = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAttachment(file);
     }
   };
 
   return (
-    <Paper className={classes.mainContainer}>
-      <div onScroll={handleScroll} className={classes.messageList}>
-        {Array.isArray(messages) &&
-          messages.map((item, key) => {
-            if (item.senderId === user.id) {
-              return (
-                <Box key={key} className={classes.boxRight}>
-                  <Typography variant="subtitle2">
-                    {item.sender.name}
-                  </Typography>
-                  {item.message}
-                  <Typography variant="caption" display="block">
-                    {datetimeToClient(item.createdAt)}
-                  </Typography>
-                </Box>
-              );
-            } else {
-              return (
-                <Box key={key} className={classes.boxLeft}>
-                  <Typography variant="subtitle2">
-                    {item.sender.name}
-                  </Typography>
-                  {item.message}
-                  <Typography variant="caption" display="block">
-                    {datetimeToClient(item.createdAt)}
-                  </Typography>
-                </Box>
-              );
-            }
-          })}
-        <div ref={baseRef}></div>
-      </div>
-      <div className={classes.inputArea}>
-        <FormControl variant="outlined" fullWidth>
-          <Input
-            multiline
-            value={contentMessage}
-            onKeyUp={(e) => {
-              if (e.key === "Enter" && contentMessage.trim() !== "") {
-                handleSendMessage(contentMessage);
-                setContentMessage("");
-              }
-            }}
-            onChange={(e) => setContentMessage(e.target.value)}
-            className={classes.input}
-            endAdornment={
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => {
-                    if (contentMessage.trim() !== "") {
-                      handleSendMessage(contentMessage);
-                      setContentMessage("");
-                    }
-                  }}
-                  className={classes.buttonSend}
-                >
-                  <SendIcon />
-                </IconButton>
-              </InputAdornment>
-            }
-          />
-        </FormControl>
-      </div>
-    </Paper>
+    <Container>
+      <Header>
+        <Toolbar>
+          <IconButton edge="start" onClick={handleClose} size="large">
+            <ArrowBackIcon />
+          </IconButton>
+          <ContactInfo>
+            <Avatar src={contact.profilePicUrl} />
+            <Box sx={{ ml: 2 }}>
+              <Typography variant="subtitle1">{contact.name}</Typography>
+              {contact.isOnline && (
+                <Typography variant="caption" color="textSecondary">
+                  {i18n.t("chat.online")}
+                </Typography>
+              )}
+            </Box>
+          </ContactInfo>
+          <Box sx={{ flexGrow: 1 }} />
+          <IconButton size="large">
+            <MoreVertIcon />
+          </IconButton>
+        </Toolbar>
+      </Header>
+
+      <MessagesList ref={scrollRef} onScroll={handleScroll}>
+        {loading && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+            <CircularProgress />
+          </Box>
+        )}
+        {messages.map((message) => (
+          <MessageBubble key={message.id} isMe={message.fromMe}>
+            <Typography variant="body1">{message.body}</Typography>
+            <MessageTime component="span">
+              {date.format(message.createdAt)}
+            </MessageTime>
+          </MessageBubble>
+        ))}
+      </MessagesList>
+
+      <InputContainer elevation={0}>
+        <input
+          type="file"
+          id="upload-button"
+          style={{ display: "none" }}
+          onChange={handleUploadFile}
+        />
+        <label htmlFor="upload-button">
+          <IconButton component="span" size="large">
+            <AttachFileIcon />
+          </IconButton>
+        </label>
+        {attachment && (
+          <Box sx={{ display: "flex", alignItems: "center", mr: 2 }}>
+            <Typography variant="body2" noWrap>
+              {attachment.name}
+            </Typography>
+            <IconButton size="small" onClick={() => setAttachment(null)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        )}
+        <InputBase
+          sx={{ ml: 1, flex: 1 }}
+          placeholder={i18n.t("chat.typeMessage")}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyPress={handleKeyPress}
+          multiline
+          maxRows={4}
+        />
+        <IconButton onClick={handleSendMessage} size="large">
+          <SendIcon />
+        </IconButton>
+      </InputContainer>
+    </Container>
   );
-}
+};
+
+export default ChatMessages;

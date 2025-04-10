@@ -1,9 +1,8 @@
 import React, { useEffect, useReducer, useState } from "react";
-
+import { styled } from '@mui/material/styles';
 import {
   Button,
   IconButton,
-  makeStyles,
   Paper,
   Table,
   TableBody,
@@ -11,7 +10,10 @@ import {
   TableHead,
   TableRow,
   Typography,
-} from "@material-ui/core";
+  Box,
+} from '@mui/material';
+import { DeleteOutline as DeleteOutlineIcon, Edit as EditIcon } from '@mui/icons-material';
+import { toast } from "react-toastify";
 
 import MainContainer from "../../components/MainContainer";
 import MainHeader from "../../components/MainHeader";
@@ -21,25 +23,22 @@ import Title from "../../components/Title";
 import { i18n } from "../../translate/i18n";
 import toastError from "../../errors/toastError";
 import api from "../../services/api";
-import { DeleteOutline, Edit } from "@material-ui/icons";
 import QueueModal from "../../components/QueueModal";
-import { toast } from "react-toastify";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import { socketConnection } from "../../services/socket";
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-  customTableCell: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+const MainPaper = styled(Paper)(({ theme }) => ({
+  flex: 1,
+  padding: theme.spacing(1),
+  overflowY: "scroll",
+  ...theme.scrollbarStyles,
 }));
+
+const CustomTableCell = styled(TableCell)({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+});
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_QUEUES") {
@@ -85,11 +84,8 @@ const reducer = (state, action) => {
 };
 
 const Queues = () => {
-  const classes = useStyles();
-
   const [queues, dispatch] = useReducer(reducer, []);
   const [loading, setLoading] = useState(false);
-
   const [queueModalOpen, setQueueModalOpen] = useState(false);
   const [selectedQueue, setSelectedQueue] = useState(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
@@ -100,7 +96,6 @@ const Queues = () => {
       try {
         const { data } = await api.get("/queue");
         dispatch({ type: "LOAD_QUEUES", payload: data });
-
         setLoading(false);
       } catch (err) {
         toastError(err);
@@ -190,7 +185,7 @@ const Queues = () => {
           </Button>
         </MainHeaderButtonsWrapper>
       </MainHeader>
-      <Paper className={classes.mainPaper} variant="outlined">
+      <MainPaper variant="outlined">
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -216,48 +211,41 @@ const Queues = () => {
               {queues.map((queue) => (
                 <TableRow key={queue.id}>
                   <TableCell align="center">{queue.name}</TableCell>
-                  <TableCell align="center">
-                    <div className={classes.customTableCell}>
-                      <span
-                        style={{
-                          backgroundColor: queue.color,
-                          width: 60,
-                          height: 20,
-                          alignSelf: "center",
-                        }}
-                      />
-                    </div>
-                  </TableCell>
-                  <TableCell align="center">
-                    <div className={classes.customTableCell}>
-                      <Typography
-                        style={{ width: 300, align: "center" }}
-                        noWrap
-                        variant="body2"
-                      >
-                        {queue.orderQueue}
-                      </Typography>
-                    </div>
-                  </TableCell>
-                  <TableCell align="center">
-                    <div className={classes.customTableCell}>
-                      <Typography
-                        style={{ width: 300, align: "center" }}
-                        noWrap
-                        variant="body2"
-                      >
-                        {queue.greetingMessage}
-                      </Typography>
-                    </div>
-                  </TableCell>
+                  <CustomTableCell>
+                    <Box
+                      sx={{
+                        backgroundColor: queue.color,
+                        width: 60,
+                        height: 20,
+                        alignSelf: "center",
+                      }}
+                    />
+                  </CustomTableCell>
+                  <CustomTableCell>
+                    <Typography
+                      sx={{ width: 300 }}
+                      noWrap
+                      variant="body2"
+                    >
+                      {queue.orderQueue}
+                    </Typography>
+                  </CustomTableCell>
+                  <CustomTableCell>
+                    <Typography
+                      sx={{ width: 300 }}
+                      noWrap
+                      variant="body2"
+                    >
+                      {queue.greetingMessage}
+                    </Typography>
+                  </CustomTableCell>
                   <TableCell align="center">
                     <IconButton
                       size="small"
                       onClick={() => handleEditQueue(queue)}
                     >
-                      <Edit />
+                      <EditIcon />
                     </IconButton>
-
                     <IconButton
                       size="small"
                       onClick={() => {
@@ -265,16 +253,16 @@ const Queues = () => {
                         setConfirmModalOpen(true);
                       }}
                     >
-                      <DeleteOutline />
+                      <DeleteOutlineIcon />
                     </IconButton>
                   </TableCell>
                 </TableRow>
               ))}
-              {loading && <TableRowSkeleton columns={4} />}
+              {loading && <TableRowSkeleton columns={5} />}
             </>
           </TableBody>
         </Table>
-      </Paper>
+      </MainPaper>
     </MainContainer>
   );
 };

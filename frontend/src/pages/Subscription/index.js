@@ -1,25 +1,29 @@
 import React, { useState, useContext } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
-
+import { styled } from "@mui/material/styles";
+import {
+  Paper,
+  Button,
+  Grid,
+  TextField,
+} from "@mui/material";
 import SubscriptionModal from "../../components/SubscriptionModal";
 import MainHeader from "../../components/MainHeader";
 import Title from "../../components/Title";
 import MainContainer from "../../components/MainContainer";
-
 import { AuthContext } from "../../context/Auth/AuthContext";
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
+const MainPaper = styled(Paper)(({ theme }) => ({
+  flex: 1,
+  padding: theme.spacing(1),
+  overflowY: "scroll",
+  ...theme.scrollbarStyles,
+}));
+
+const FormContainer = styled("div")(({ theme }) => ({
+  padding: theme.spacing(2),
+  display: "flex",
+  flexDirection: "column",
+  gap: theme.spacing(2),
 }));
 
 const _formatDate = (date) => {
@@ -27,20 +31,16 @@ const _formatDate = (date) => {
   const past = new Date(date);
   const diff = Math.abs(now.getTime() - past.getTime());
   const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-
   return days;
-}
+};
 
-const Contacts = () => {
-  const classes = useStyles();
+const Subscription = () => {
   const { user } = useContext(AuthContext);
-
-  const [loading,] = useState(false);
+  const [loading] = useState(false);
   const [, setPageNumber] = useState(1);
   const [selectedContactId, setSelectedContactId] = useState(null);
   const [contactModalOpen, setContactModalOpen] = useState(false);
-  const [hasMore,] = useState(false);
-
+  const [hasMore] = useState(false);
 
   const handleOpenContactModal = () => {
     setSelectedContactId(null);
@@ -65,25 +65,22 @@ const Contacts = () => {
   };
 
   return (
-    <MainContainer className={classes.mainContainer}>
+    <MainContainer>
       <SubscriptionModal
         open={contactModalOpen}
         onClose={handleCloseContactModal}
         aria-labelledby="form-dialog-title"
         contactId={selectedContactId}
-      ></SubscriptionModal>
-
+      />
       <MainHeader>
         <Title>Assinatura</Title>
       </MainHeader>
       <Grid item xs={12} sm={4}>
-        <Paper
-          className={classes.mainPaper}
+        <MainPaper
           variant="outlined"
           onScroll={handleScroll}
         >
-
-          <div>
+          <FormContainer>
             <TextField
               id="outlined-full-width"
               label="Período de teste"
@@ -98,10 +95,6 @@ const Contacts = () => {
               }}
               variant="outlined"
             />
-
-          </div>
-
-          <div>
             <TextField
               id="outlined-full-width"
               label="Email de cobrança"
@@ -116,10 +109,6 @@ const Contacts = () => {
               }}
               variant="outlined"
             />
-
-          </div>
-
-          <div>
             <Button
               variant="contained"
               color="primary"
@@ -128,12 +117,11 @@ const Contacts = () => {
             >
               Assine Agora!
             </Button>
-          </div>
-
-        </Paper>
+          </FormContainer>
+        </MainPaper>
       </Grid>
     </MainContainer>
   );
 };
 
-export default Contacts;
+export default Subscription;

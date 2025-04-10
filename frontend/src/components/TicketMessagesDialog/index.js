@@ -10,7 +10,7 @@ import {
   Dialog,
   DialogActions,
   makeStyles,
-} from "@material-ui/core";
+} from "@mui/material";
 import { useHistory } from "react-router-dom";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import MessagesList from "../MessagesList";

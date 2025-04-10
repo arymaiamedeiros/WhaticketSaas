@@ -1,47 +1,42 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
+import { styled } from "@mui/material/styles";
+import Paper from "@mui/material/Paper";
 
 import MainContainer from "../../components/MainContainer";
 import MainHeader from "../../components/MainHeader";
 import Title from "../../components/Title";
 
-import { Grid, LinearProgress, Typography } from "@material-ui/core";
+import { Grid, LinearProgress, Typography } from "@mui/material";
 import api from "../../services/api";
 import { has, get, isNull } from "lodash";
 import CardCounter from "../../components/Dashboard/CardCounter";
-import GroupIcon from "@material-ui/icons/Group";
-import ScheduleIcon from "@material-ui/icons/Schedule";
-import EventAvailableIcon from "@material-ui/icons/EventAvailable";
-import DoneIcon from "@material-ui/icons/Done";
-import DoneAllIcon from "@material-ui/icons/DoneAll";
-import CheckCircleIcon from "@material-ui/icons/CheckCircle";
-import WhatsAppIcon from "@material-ui/icons/WhatsApp";
-import ListAltIcon from "@material-ui/icons/ListAlt";
+import GroupIcon from "@mui/icons-material/Group";
+import ScheduleIcon from "@mui/icons-material/Schedule";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import DoneIcon from "@mui/icons-material/Done";
+import DoneAllIcon from "@mui/icons-material/DoneAll";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import ListAltIcon from "@mui/icons-material/ListAlt";
 import { useDate } from "../../hooks/useDate";
 
 import { socketConnection } from "../../services/socket";
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(2),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-  textRight: {
-    textAlign: "right",
-  },
-  tabPanelsContainer: {
-    padding: theme.spacing(2),
-  },
+const MainPaper = styled(Paper)(({ theme }) => ({
+  flex: 1,
+  padding: theme.spacing(2),
+  overflowY: "scroll",
+  ...theme.scrollbarStyles,
 }));
 
-const CampaignReport = () => {
-  const classes = useStyles();
+const ProgressBar = styled(LinearProgress)({
+  height: 15,
+  borderRadius: 3,
+  margin: "20px 0",
+});
 
+const CampaignReport = () => {
   const { campaignId } = useParams();
 
   const [campaign, setCampaign] = useState({});
@@ -100,7 +95,6 @@ const CampaignReport = () => {
     const socket = socketConnection({ companyId });
 
     socket.on(`company-${companyId}-campaign`, (data) => {
-     
       if (data.record.id === +campaignId) {
         setCampaign(data.record);
 
@@ -145,23 +139,19 @@ const CampaignReport = () => {
   return (
     <MainContainer>
       <MainHeader>
-        <Grid style={{ width: "99.6%" }} container>
+        <Grid container>
           <Grid xs={12} item>
             <Title>Relatório da {campaign.name || "Campanha"}</Title>
           </Grid>
         </Grid>
       </MainHeader>
-      <Paper className={classes.mainPaper} variant="outlined">
+      <MainPaper variant="outlined">
         <Typography variant="h6" component="h2">
           Status: {formatStatus(campaign.status)} {delivered} de {validContacts}
         </Typography>
         <Grid spacing={2} container>
           <Grid xs={12} item>
-            <LinearProgress
-              variant="determinate"
-              style={{ height: 15, borderRadius: 3, margin: "20px 0" }}
-              value={percent}
-            />
+            <ProgressBar variant="determinate" value={percent} />
           </Grid>
           <Grid xs={12} md={4} item>
             <CardCounter
@@ -236,7 +226,7 @@ const CampaignReport = () => {
             />
           </Grid>
         </Grid>
-      </Paper>
+      </MainPaper>
     </MainContainer>
   );
 };

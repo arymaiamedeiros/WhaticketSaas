@@ -2,28 +2,27 @@
 
 import React, { useState, useEffect, useReducer } from "react";
 import { toast } from "react-toastify";
-
 import { useHistory } from "react-router-dom";
+import { styled } from "@mui/material/styles";
+import Paper from "@mui/material/Paper";
+import Button from "@mui/material/Button";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import IconButton from "@mui/material/IconButton";
+import SearchIcon from "@mui/icons-material/Search";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
+import Grid from "@mui/material/Grid";
 
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import IconButton from "@material-ui/core/IconButton";
-import SearchIcon from "@material-ui/icons/Search";
-import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
-
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import EditIcon from "@material-ui/icons/Edit";
-import DescriptionIcon from "@material-ui/icons/Description";
-import TimerOffIcon from "@material-ui/icons/TimerOff";
-import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
-import PauseCircleOutlineIcon from "@material-ui/icons/PauseCircleOutline";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import EditIcon from "@mui/icons-material/Edit";
+import DescriptionIcon from "@mui/icons-material/Description";
+import TimerOffIcon from "@mui/icons-material/TimerOff";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import PauseCircleOutlineIcon from "@mui/icons-material/PauseCircleOutline";
 
 import MainContainer from "../../components/MainContainer";
 import MainHeader from "../../components/MainHeader";
@@ -35,10 +34,16 @@ import TableRowSkeleton from "../../components/TableRowSkeleton";
 import CampaignModal from "../../components/CampaignModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import toastError from "../../errors/toastError";
-import { Grid } from "@material-ui/core";
 import { isArray } from "lodash";
 import { useDate } from "../../hooks/useDate";
 import { socketConnection } from "../../services/socket";
+
+const MainPaper = styled(Paper)(({ theme }) => ({
+  flex: 1,
+  padding: theme.spacing(1),
+  overflowY: "scroll",
+  ...theme.scrollbarStyles,
+}));
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_CAMPAIGNS") {
@@ -86,18 +91,7 @@ const reducer = (state, action) => {
   }
 };
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-}));
-
 const Campaigns = () => {
-  const classes = useStyles();
-
   const history = useHistory();
 
   const [loading, setLoading] = useState(false);
@@ -248,176 +242,151 @@ const Campaigns = () => {
           }?`
         }
         open={confirmModalOpen}
-        onClose={setConfirmModalOpen}
-        onConfirm={() => handleDeleteCampaign(deletingCampaign.id)}
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={() => handleDeleteCampaign(deletingCampaign?.id)}
       >
         {i18n.t("campaigns.confirmationModal.deleteMessage")}
       </ConfirmationModal>
       <CampaignModal
-        resetPagination={() => {
-          setPageNumber(1);
-          fetchCampaigns();
-        }}
         open={campaignModalOpen}
         onClose={handleCloseCampaignModal}
         aria-labelledby="form-dialog-title"
-        campaignId={selectedCampaign && selectedCampaign.id}
+        campaignId={selectedCampaign?.id}
       />
       <MainHeader>
-        <Grid style={{ width: "99.6%" }} container>
-          <Grid xs={12} sm={8} item>
-            <Title>{i18n.t("campaigns.title")}</Title>
-          </Grid>
-          <Grid xs={12} sm={4} item>
-            <Grid spacing={2} container>
-              <Grid xs={6} sm={6} item>
-                <TextField
-                  fullWidth
-                  placeholder={i18n.t("campaigns.searchPlaceholder")}
-                  type="search"
-                  value={searchParam}
-                  onChange={handleSearch}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon style={{ color: "gray" }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid xs={6} sm={6} item>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  onClick={handleOpenCampaignModal}
-                  color="primary"
-                >
-                  {i18n.t("campaigns.buttons.add")}
-                </Button>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
+        <Title>{i18n.t("campaigns.title")}</Title>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleOpenCampaignModal}
+        >
+          {i18n.t("campaigns.buttons.add")}
+        </Button>
       </MainHeader>
-      <Paper
-        className={classes.mainPaper}
-        variant="outlined"
-        onScroll={handleScroll}
-      >
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell align="center">
-                {i18n.t("campaigns.table.name")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("campaigns.table.status")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("campaigns.table.contactList")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("campaigns.table.whatsapp")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("campaigns.table.scheduledAt")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("campaigns.table.completedAt")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("campaigns.table.confirmation")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("campaigns.table.actions")}
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <>
-              {campaigns.map((campaign) => (
-                <TableRow key={campaign.id}>
-                  <TableCell align="center">{campaign.name}</TableCell>
+      <MainPaper variant="outlined" onScroll={handleScroll}>
+        <Grid spacing={2} container>
+          <Grid xs={12} item>
+            <TextField
+              placeholder={i18n.t("campaigns.searchPlaceholder")}
+              type="search"
+              value={searchParam}
+              onChange={handleSearch}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon style={{ color: "gray" }} />
+                  </InputAdornment>
+                ),
+              }}
+              fullWidth
+            />
+          </Grid>
+          <Grid xs={12} item>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
                   <TableCell align="center">
-                    {formatStatus(campaign.status)}
+                    {i18n.t("campaigns.table.name")}
                   </TableCell>
                   <TableCell align="center">
-                    {campaign.contactListId
-                      ? campaign.contactList.name
-                      : "Não definida"}
+                    {i18n.t("campaigns.table.contacts")}
                   </TableCell>
                   <TableCell align="center">
-                    {campaign.whatsappId
-                      ? campaign.whatsapp.name
-                      : "Não definido"}
+                    {i18n.t("campaigns.table.status")}
                   </TableCell>
                   <TableCell align="center">
-                    {campaign.scheduledAt
-                      ? datetimeToClient(campaign.scheduledAt)
-                      : "Sem agendamento"}
+                    {i18n.t("campaigns.table.scheduledAt")}
                   </TableCell>
                   <TableCell align="center">
-                    {campaign.completedAt
-                      ? datetimeToClient(campaign.completedAt)
-                      : "Não concluída"}
+                    {i18n.t("campaigns.table.completedAt")}
                   </TableCell>
                   <TableCell align="center">
-                    {campaign.confirmation ? "Habilitada" : "Desabilitada"}
-                  </TableCell>
-                  <TableCell align="center">
-                    {campaign.status === "EM_ANDAMENTO" && (
-                      <IconButton
-                        onClick={() => cancelCampaign(campaign)}
-                        title="Parar Campanha"
-                        size="small"
-                      >
-                        <PauseCircleOutlineIcon />
-                      </IconButton>
-                    )}
-                    {campaign.status === "CANCELADA" && (
-                      <IconButton
-                        onClick={() => restartCampaign(campaign)}
-                        title="Parar Campanha"
-                        size="small"
-                      >
-                        <PlayCircleOutlineIcon />
-                      </IconButton>
-                    )}
-                    <IconButton
-                      onClick={() =>
-                        history.push(`/campaign/${campaign.id}/report`)
-                      }
-                      size="small"
-                    >
-                      <DescriptionIcon />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleEditCampaign(campaign)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-
-                    <IconButton
-                      size="small"
-                      onClick={(e) => {
-                        setConfirmModalOpen(true);
-                        setDeletingCampaign(campaign);
-                      }}
-                    >
-                      <DeleteOutlineIcon />
-                    </IconButton>
+                    {i18n.t("campaigns.table.actions")}
                   </TableCell>
                 </TableRow>
-              ))}
-              {loading && <TableRowSkeleton columns={8} />}
-            </>
-          </TableBody>
-        </Table>
-      </Paper>
+              </TableHead>
+              <TableBody>
+                <>
+                  {campaigns.map((campaign) => (
+                    <TableRow key={campaign.id}>
+                      <TableCell align="center">{campaign.name}</TableCell>
+                      <TableCell align="center">
+                        {campaign.contactsCount}
+                      </TableCell>
+                      <TableCell align="center">
+                        {formatStatus(campaign.status)}
+                      </TableCell>
+                      <TableCell align="center">
+                        {datetimeToClient(campaign.scheduledAt)}
+                      </TableCell>
+                      <TableCell align="center">
+                        {datetimeToClient(campaign.completedAt)}
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleEditCampaign(campaign)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setDeletingCampaign(campaign);
+                            setConfirmModalOpen(true);
+                          }}
+                        >
+                          <DeleteOutlineIcon />
+                        </IconButton>
+
+                        {campaign.status === "PROGRAMADA" && (
+                          <IconButton
+                            size="small"
+                            onClick={() => cancelCampaign(campaign)}
+                          >
+                            <TimerOffIcon />
+                          </IconButton>
+                        )}
+
+                        {campaign.status === "CANCELADA" && (
+                          <IconButton
+                            size="small"
+                            onClick={() => restartCampaign(campaign)}
+                          >
+                            <PlayCircleOutlineIcon />
+                          </IconButton>
+                        )}
+
+                        {campaign.status === "EM_ANDAMENTO" && (
+                          <IconButton
+                            size="small"
+                            onClick={() => cancelCampaign(campaign)}
+                          >
+                            <PauseCircleOutlineIcon />
+                          </IconButton>
+                        )}
+
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            history.push(`/campaigns/${campaign.id}/contacts`)
+                          }
+                        >
+                          <DescriptionIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {loading && <TableRowSkeleton columns={6} />}
+                </>
+              </TableBody>
+            </Table>
+          </Grid>
+        </Grid>
+      </MainPaper>
     </MainContainer>
   );
 };
 
-export default Campaigns;
+export default Campaigns; 

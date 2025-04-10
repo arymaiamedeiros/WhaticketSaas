@@ -1,75 +1,71 @@
 import React, { useContext, useEffect, useReducer, useState } from "react";
-import { Link as RouterLink, useHistory } from "react-router-dom";
-
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListSubheader from "@material-ui/core/ListSubheader";
-import Divider from "@material-ui/core/Divider";
-import { Badge, Collapse, List } from "@material-ui/core";
-import DashboardOutlinedIcon from "@material-ui/icons/DashboardOutlined";
-import WhatsAppIcon from "@material-ui/icons/WhatsApp";
-import SyncAltIcon from "@material-ui/icons/SyncAlt";
-import SettingsOutlinedIcon from "@material-ui/icons/SettingsOutlined";
-import PeopleAltOutlinedIcon from "@material-ui/icons/PeopleAltOutlined";
-import ContactPhoneOutlinedIcon from "@material-ui/icons/ContactPhoneOutlined";
-import AccountTreeOutlinedIcon from "@material-ui/icons/AccountTreeOutlined";
-import FlashOnIcon from "@material-ui/icons/FlashOn";
-import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
-import CodeRoundedIcon from "@material-ui/icons/CodeRounded";
-import EventIcon from "@material-ui/icons/Event";
-import LocalOfferIcon from "@material-ui/icons/LocalOffer";
-import EventAvailableIcon from "@material-ui/icons/EventAvailable";
-import ExpandLessIcon from "@material-ui/icons/ExpandLess";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import PeopleIcon from "@material-ui/icons/People";
-import ListIcon from "@material-ui/icons/ListAlt";
-import AnnouncementIcon from "@material-ui/icons/Announcement";
-import ForumIcon from "@material-ui/icons/Forum";
-import LocalAtmIcon from '@material-ui/icons/LocalAtm';
-import { i18n } from "../translate/i18n";
-import { WhatsAppsContext } from "../context/WhatsApp/WhatsAppsContext";
-import { AuthContext } from "../context/Auth/AuthContext";
+import { Link as RouterLink, useHistory, useLocation } from "react-router-dom";
+import { styled } from '@mui/material/styles';
+import {
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Collapse,
+  List,
+  Badge
+} from "@mui/material";
+import {
+  ExpandLess,
+  ExpandMore,
+  Dashboard as DashboardIcon,
+  People as PeopleIcon,
+  Settings as SettingsIcon,
+  Queue as QueueIcon,
+  Tag as TagIcon,
+  Message as MessageIcon,
+  ContactMail as ContactMailIcon,
+  ContactPhone as ContactPhoneIcon,
+  ContactSupport as ContactSupportIcon,
+  ContactEmergency as ContactEmergencyIcon,
+  ContactPage as ContactPageIcon,
+  ContactMailOutline as ContactMailOutlineIcon,
+  ContactPhoneOutline as ContactPhoneOutlineIcon,
+  ContactSupportOutline as ContactSupportOutlineIcon,
+  ContactEmergencyOutline as ContactEmergencyOutlineIcon,
+  ContactPageOutline as ContactPageOutlineIcon,
+  QueueOutline as QueueOutlineIcon,
+  TagOutline as TagOutlineIcon,
+  MessageOutline as MessageOutlineIcon,
+  DashboardOutline as DashboardOutlineIcon,
+  SettingsOutline as SettingsOutlineIcon,
+  PeopleOutline as PeopleOutlineIcon
+} from "@mui/icons-material";
 import { Can } from "../components/Can";
+import { AuthContext } from "../context/Auth/AuthContext";
+import { WhatsAppsContext } from "../context/WhatsApp/WhatsAppsContext";
+import { i18n } from "../translate/i18n";
 import { socketConnection } from "../services/socket";
 import { isArray } from "lodash";
-import TableChartIcon from '@material-ui/icons/TableChart';
 import api from "../services/api";
-import BorderColorIcon from '@material-ui/icons/BorderColor';
 import toastError from "../errors/toastError";
-import { makeStyles } from "@material-ui/core/styles";
-import { AllInclusive, AttachFile, BlurCircular, DeviceHubOutlined, Schedule } from '@material-ui/icons';
 import usePlans from "../hooks/usePlans";
 
-const useStyles = makeStyles((theme) => ({
-  ListSubheader: {
-    height: 26,
-    marginTop: "-15px",
-    marginBottom: "-10px",
+const StyledListItem = styled(ListItem)(({ theme }) => ({
+  paddingLeft: theme.spacing(2),
+  paddingRight: theme.spacing(2),
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
   },
 }));
 
+const StyledListItemIcon = styled(ListItemIcon)(({ theme }) => ({
+  minWidth: theme.spacing(4),
+}));
 
-function ListItemLink(props) {
-  const { icon, primary, to, className } = props;
+const StyledListItemText = styled(ListItemText)(({ theme }) => ({
+  '& .MuiListItemText-primary': {
+    fontSize: theme.typography.body2.fontSize,
+  },
+}));
 
-  const renderLink = React.useMemo(
-    () =>
-      React.forwardRef((itemProps, ref) => (
-        <RouterLink to={to} ref={ref} {...itemProps} />
-      )),
-    [to]
-  );
-
-  return (
-    <li>
-      <ListItem button dense component={renderLink} className={className}>
-        {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
-        <ListItemText primary={primary} />
-      </ListItem>
-    </li>
-  );
-}
+const StyledCollapse = styled(Collapse)(({ theme }) => ({
+  paddingLeft: theme.spacing(2),
+}));
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_CHATS") {
@@ -128,7 +124,6 @@ const reducer = (state, action) => {
 };
 
 const MainListItems = (props) => {
-  const classes = useStyles();
   const { drawerClose, collapsed } = props;
   const { whatsApps } = useContext(WhatsAppsContext);
   const { user, handleLogout } = useContext(AuthContext);
@@ -137,18 +132,17 @@ const MainListItems = (props) => {
   const [showCampaigns, setShowCampaigns] = useState(false);
   const [showKanban, setShowKanban] = useState(false);
   const [showOpenAi, setShowOpenAi] = useState(false);
-  const [showIntegrations, setShowIntegrations] = useState(false); const history = useHistory();
+  const [showIntegrations, setShowIntegrations] = useState(false);
   const [showSchedules, setShowSchedules] = useState(false);
   const [showInternalChat, setShowInternalChat] = useState(false);
   const [showExternalApi, setShowExternalApi] = useState(false);
-
+  const location = useLocation();
 
   const [invisible, setInvisible] = useState(true);
   const [pageNumber, setPageNumber] = useState(1);
   const [searchParam] = useState("");
   const [chats, dispatch] = useReducer(reducer, []);
   const { getPlanCompany } = usePlans();
- 
 
   useEffect(() => {
     dispatch({ type: "RESET" });
@@ -170,8 +164,6 @@ const MainListItems = (props) => {
     }
     fetchData();
   }, []);
-
-
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -263,72 +255,94 @@ const MainListItems = (props) => {
     <div onClick={drawerClose}>
       <Can
         role={user.profile}
-        perform="dashboard:view"
+        perform="drawer-dashboard-items:view"
         yes={() => (
-          <ListItemLink
+          <StyledListItem
+            button
+            component={RouterLink}
             to="/"
-            primary="Dashboard"
-            icon={<DashboardOutlinedIcon />}
-          />
+            selected={location.pathname === "/"}
+          >
+            <StyledListItemIcon>
+              <DashboardIcon />
+            </StyledListItemIcon>
+            <StyledListItemText primary={i18n.t("mainDrawer.listItems.dashboard")} />
+          </StyledListItem>
         )}
       />
 
-      <ListItemLink
-        to="/tickets"
-        primary={i18n.t("mainDrawer.listItems.tickets")}
-        icon={<WhatsAppIcon />}
-      />
-	  
-	  <ListItemLink
-        to="/kanban"
-        primary={i18n.t("Kanban")}
-        icon={<TableChartIcon />}
-      />
-
-      <ListItemLink
-        to="/quick-messages"
-        primary={i18n.t("mainDrawer.listItems.quickMessages")}
-        icon={<FlashOnIcon />}
-      />
-	  
-	  <ListItemLink
-        to="/todolist"
-        primary={i18n.t("Tarefas")}
-        icon={<BorderColorIcon />}
+      <Can
+        role={user.profile}
+        perform="drawer-tickets-items:view"
+        yes={() => (
+          <StyledListItem
+            button
+            component={RouterLink}
+            to="/tickets"
+            selected={location.pathname === "/tickets"}
+          >
+            <StyledListItemIcon>
+              <Badge badgeContent={chats.filter((t) => t.isGroup === false).length} color="secondary">
+                <MessageIcon />
+              </Badge>
+            </StyledListItemIcon>
+            <StyledListItemText primary={i18n.t("mainDrawer.listItems.tickets")} />
+          </StyledListItem>
+        )}
       />
 
-      <ListItemLink
-        to="/contacts"
-        primary={i18n.t("mainDrawer.listItems.contacts")}
-        icon={<ContactPhoneOutlinedIcon />}
+      <Can
+        role={user.profile}
+        perform="drawer-queues-items:view"
+        yes={() => (
+          <StyledListItem
+            button
+            component={RouterLink}
+            to="/queues"
+            selected={location.pathname === "/queues"}
+          >
+            <StyledListItemIcon>
+              <QueueIcon />
+            </StyledListItemIcon>
+            <StyledListItemText primary={i18n.t("mainDrawer.listItems.queues")} />
+          </StyledListItem>
+        )}
       />
 
-      <ListItemLink
-        to="/schedules"
-        primary={i18n.t("mainDrawer.listItems.schedules")}
-        icon={<EventIcon />}
+      <Can
+        role={user.profile}
+        perform="drawer-tags-items:view"
+        yes={() => (
+          <StyledListItem
+            button
+            component={RouterLink}
+            to="/tags"
+            selected={location.pathname === "/tags"}
+          >
+            <StyledListItemIcon>
+              <TagIcon />
+            </StyledListItemIcon>
+            <StyledListItemText primary={i18n.t("mainDrawer.listItems.tags")} />
+          </StyledListItem>
+        )}
       />
 
-      <ListItemLink
-        to="/tags"
-        primary={i18n.t("mainDrawer.listItems.tags")}
-        icon={<LocalOfferIcon />}
-      />
-
-      <ListItemLink
-        to="/chats"
-        primary={i18n.t("mainDrawer.listItems.chats")}
-        icon={
-          <Badge color="secondary" variant="dot" invisible={invisible}>
-            <ForumIcon />
-          </Badge>
-        }
-      />
-
-      <ListItemLink
-        to="/helps"
-        primary={i18n.t("mainDrawer.listItems.helps")}
-        icon={<HelpOutlineIcon />}
+      <Can
+        role={user.profile}
+        perform="drawer-settings-items:view"
+        yes={() => (
+          <StyledListItem
+            button
+            component={RouterLink}
+            to="/settings"
+            selected={location.pathname === "/settings"}
+          >
+            <StyledListItemIcon>
+              <SettingsIcon />
+            </StyledListItemIcon>
+            <StyledListItemText primary={i18n.t("mainDrawer.listItems.settings")} />
+          </StyledListItem>
+        )}
       />
 
       <Can
@@ -336,140 +350,143 @@ const MainListItems = (props) => {
         perform="drawer-admin-items:view"
         yes={() => (
           <>
-            <Divider />
-            <ListSubheader
-              hidden={collapsed}
-              style={{
-                position: "relative",
-                fontSize: "17px",
-                textAlign: "left",
-                paddingLeft: 20
-              }}
-              inset
-              color="inherit">
-              {i18n.t("mainDrawer.listItems.administration")}
-            </ListSubheader>
-			
-            {showCampaigns && (
-              <>
-                <ListItem
+            <StyledListItem
+              button
+              onClick={() => setOpenCampaignSubmenu((prev) => !prev)}
+            >
+              <StyledListItemIcon>
+                <ExpandLess />
+                <ExpandMore />
+              </StyledListItemIcon>
+              <StyledListItemText primary={i18n.t("mainDrawer.listItems.campaigns")} />
+            </StyledListItem>
+            <StyledCollapse in={openCampaignSubmenu} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <StyledListItem onClick={() => history.push("/campaigns")} button>
+                  <StyledListItemIcon>
+                    <PeopleIcon />
+                  </StyledListItemIcon>
+                  <StyledListItemText primary="Listagem" />
+                </StyledListItem>
+                <StyledListItem
+                  onClick={() => history.push("/contact-lists")}
                   button
-                  onClick={() => setOpenCampaignSubmenu((prev) => !prev)}
                 >
-                  <ListItemIcon>
-                    <EventAvailableIcon />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={i18n.t("mainDrawer.listItems.campaigns")}
-                  />
-                  {openCampaignSubmenu ? (
-                    <ExpandLessIcon />
-                  ) : (
-                    <ExpandMoreIcon />
-                  )}
-                </ListItem>
-                <Collapse
-                  style={{ paddingLeft: 15 }}
-                  in={openCampaignSubmenu}
-                  timeout="auto"
-                  unmountOnExit
+                  <StyledListItemIcon>
+                    <PeopleIcon />
+                  </StyledListItemIcon>
+                  <StyledListItemText primary="Listas de Contatos" />
+                </StyledListItem>
+                <StyledListItem
+                  onClick={() => history.push("/campaigns-config")}
+                  button
                 >
-                  <List component="div" disablePadding>
-                    <ListItem onClick={() => history.push("/campaigns")} button>
-                      <ListItemIcon>
-                        <ListIcon />
-                      </ListItemIcon>
-                      <ListItemText primary="Listagem" />
-                    </ListItem>
-                    <ListItem
-                      onClick={() => history.push("/contact-lists")}
-                      button
-                    >
-                      <ListItemIcon>
-                        <PeopleIcon />
-                      </ListItemIcon>
-                      <ListItemText primary="Listas de Contatos" />
-                    </ListItem>
-                    <ListItem
-                      onClick={() => history.push("/campaigns-config")}
-                      button
-                    >
-                      <ListItemIcon>
-                        <SettingsOutlinedIcon />
-                      </ListItemIcon>
-                      <ListItemText primary="Configurações" />
-                    </ListItem>
-                  </List>
-                </Collapse>
-              </>
-            )}
+                  <StyledListItemIcon>
+                    <SettingsIcon />
+                  </StyledListItemIcon>
+                  <StyledListItemText primary="Configurações" />
+                </StyledListItem>
+              </List>
+            </StyledCollapse>
             {user.super && (
-              <ListItemLink
+              <StyledListItem
+                button
+                component={RouterLink}
                 to="/announcements"
-                primary={i18n.t("mainDrawer.listItems.annoucements")}
-                icon={<AnnouncementIcon />}
-              />
+              >
+                <StyledListItemIcon>
+                  <ExpandLess />
+                  <ExpandMore />
+                </StyledListItemIcon>
+                <StyledListItemText primary={i18n.t("mainDrawer.listItems.annoucements")} />
+              </StyledListItem>
             )}
             {showOpenAi && (
-              <ListItemLink
+              <StyledListItem
+                button
+                component={RouterLink}
                 to="/prompts"
-                primary={i18n.t("mainDrawer.listItems.prompts")}
-                icon={<AllInclusive />}
-              />
+              >
+                <StyledListItemIcon>
+                  <ExpandLess />
+                  <ExpandMore />
+                </StyledListItemIcon>
+                <StyledListItemText primary={i18n.t("mainDrawer.listItems.prompts")} />
+              </StyledListItem>
             )}
 
             {showIntegrations && (
-              <ListItemLink
+              <StyledListItem
+                button
+                component={RouterLink}
                 to="/queue-integration"
-                primary={i18n.t("mainDrawer.listItems.queueIntegration")}
-                icon={<DeviceHubOutlined />}
-              />
+              >
+                <StyledListItemIcon>
+                  <ExpandLess />
+                  <ExpandMore />
+                </StyledListItemIcon>
+                <StyledListItemText primary={i18n.t("mainDrawer.listItems.queueIntegration")} />
+              </StyledListItem>
             )}
-            <ListItemLink
+            <StyledListItem
+              button
+              component={RouterLink}
               to="/connections"
-              primary={i18n.t("mainDrawer.listItems.connections")}
-              icon={
+            >
+              <StyledListItemIcon>
                 <Badge badgeContent={connectionWarning ? "!" : 0} color="error">
-                  <SyncAltIcon />
+                  <ExpandLess />
+                  <ExpandMore />
                 </Badge>
-              }
-            />
-            <ListItemLink
+              </StyledListItemIcon>
+              <StyledListItemText primary={i18n.t("mainDrawer.listItems.connections")} />
+            </StyledListItem>
+            <StyledListItem
+              button
+              component={RouterLink}
               to="/files"
-              primary={i18n.t("mainDrawer.listItems.files")}
-              icon={<AttachFile />}
-            />
-            <ListItemLink
-              to="/queues"
-              primary={i18n.t("mainDrawer.listItems.queues")}
-              icon={<AccountTreeOutlinedIcon />}
-            />
-            <ListItemLink
+            >
+              <StyledListItemIcon>
+                <ExpandLess />
+                <ExpandMore />
+              </StyledListItemIcon>
+              <StyledListItemText primary={i18n.t("mainDrawer.listItems.files")} />
+            </StyledListItem>
+            <StyledListItem
+              button
+              component={RouterLink}
               to="/users"
-              primary={i18n.t("mainDrawer.listItems.users")}
-              icon={<PeopleAltOutlinedIcon />}
-            />
+            >
+              <StyledListItemIcon>
+                <ExpandLess />
+                <ExpandMore />
+              </StyledListItemIcon>
+              <StyledListItemText primary={i18n.t("mainDrawer.listItems.users")} />
+            </StyledListItem>
             {showExternalApi && (
-              <>
-                <ListItemLink
-                  to="/messages-api"
-                  primary={i18n.t("mainDrawer.listItems.messagesAPI")}
-                  icon={<CodeRoundedIcon />}
-                />
-              </>
+              <StyledListItem
+                button
+                component={RouterLink}
+                to="/messages-api"
+              >
+                <StyledListItemIcon>
+                  <ExpandLess />
+                  <ExpandMore />
+                </StyledListItemIcon>
+                <StyledListItemText primary={i18n.t("mainDrawer.listItems.messagesAPI")} />
+              </StyledListItem>
             )}
-            <ListItemLink
+            <StyledListItem
+              button
+              component={RouterLink}
               to="/financeiro"
-              primary={i18n.t("mainDrawer.listItems.financeiro")}
-              icon={<LocalAtmIcon />}
-            />
-
-            <ListItemLink
-              to="/settings"
-              primary={i18n.t("mainDrawer.listItems.settings")}
-              icon={<SettingsOutlinedIcon />}
-            />
-
+            >
+              <StyledListItemIcon>
+                <ExpandLess />
+                <ExpandMore />
+              </StyledListItemIcon>
+              <StyledListItemText primary={i18n.t("mainDrawer.listItems.financeiro")} />
+            </StyledListItem>
           </>
         )}
       />

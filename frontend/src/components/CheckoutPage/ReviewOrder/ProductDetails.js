@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, List, ListItem, ListItemText } from '@material-ui/core';
+import { Typography, List, ListItem, ListItemText } from '@mui/material';
 import useStyles from './styles';
 
 const products = [

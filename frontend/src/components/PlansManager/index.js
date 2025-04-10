@@ -1,71 +1,77 @@
 import React, { useState, useEffect } from "react";
+import { styled } from '@mui/material/styles';
 import {
-    makeStyles,
     Paper,
-    Grid,
-    TextField,
     Table,
-    TableHead,
     TableBody,
     TableCell,
+    TableContainer,
+    TableHead,
     TableRow,
+    Button,
     IconButton,
+    TextField,
+    InputAdornment,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Typography,
+    Box,
+    Grid,
+    FormControlLabel,
+    Switch,
+    Tooltip,
+    Chip,
     FormControl,
     InputLabel,
     MenuItem,
     Select
-} from "@material-ui/core";
+} from "@mui/material";
+import {
+    Search as SearchIcon,
+    Edit as EditIcon,
+    Delete as DeleteIcon,
+    Add as AddIcon
+} from "@mui/icons-material";
 import { Formik, Form, Field } from 'formik';
 import ButtonWithSpinner from "../ButtonWithSpinner";
 import ConfirmationModal from "../ConfirmationModal";
-
-import { Edit as EditIcon } from "@material-ui/icons";
-
 import { toast } from "react-toastify";
 import usePlans from "../../hooks/usePlans";
 import { i18n } from "../../translate/i18n";
+import api from "../../services/api";
+import toastError from "../../errors/toastError";
+import PlanModal from "./PlanModal";
 
+const MainPaper = styled(Paper)(({ theme }) => ({
+    padding: theme.spacing(3),
+    marginBottom: theme.spacing(3),
+}));
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        width: '100%'
+const StyledTable = styled(Table)(({ theme }) => ({
+    minWidth: 650,
+}));
+
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+    '&.MuiTableCell-head': {
+        backgroundColor: theme.palette.primary.main,
+        color: theme.palette.primary.contrastText,
     },
-    mainPaper: {
-        width: '100%',
-        flex: 1,
-        padding: theme.spacing(2)
-    },
-    fullWidth: {
-        width: '100%'
-    },
-    tableContainer: {
-        width: '100%',
-        overflowX: "scroll",
-        ...theme.scrollbarStyles
-    },
-    textfield: {
-        width: '100%'
-    },
-    textRight: {
-        textAlign: 'right'
-    },
-    row: {
-        paddingTop: theme.spacing(2),
-        paddingBottom: theme.spacing(2)
-    },
-    control: {
-        paddingRight: theme.spacing(1),
-        paddingLeft: theme.spacing(1)
-    },
-    buttonContainer: {
-        textAlign: 'right',
-        padding: theme.spacing(1)
-    }
+}));
+
+const ActionButtons = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    gap: theme.spacing(1),
+}));
+
+const StatusChip = styled(Chip)(({ theme, status }) => ({
+    backgroundColor: status ? theme.palette.success.light : theme.palette.error.light,
+    color: status ? theme.palette.success.contrastText : theme.palette.error.contrastText,
 }));
 
 export function PlanManagerForm(props) {
     const { onSubmit, onDelete, onCancel, initialValue, loading } = props;
-    const classes = useStyles()
 
     const [record, setRecord] = useState({
         name: '',
@@ -93,7 +99,6 @@ export function PlanManagerForm(props) {
     return (
         <Formik
             enableReinitialize
-            className={classes.fullWidth}
             initialValues={record}
             onSubmit={(values, { resetForm }) =>
                 setTimeout(() => {
@@ -103,74 +108,68 @@ export function PlanManagerForm(props) {
             }
         >
             {(values) => (
-                <Form className={classes.fullWidth}>
-                    <Grid spacing={1} justifyContent="flex-start" container>
-                        {/* NOME */}
-                        <Grid xs={12} sm={6} md={2} item>
+                <Form>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6} md={2}>
                             <Field
                                 as={TextField}
                                 label={i18n.t("plans.form.name")}
                                 name="name"
                                 variant="outlined"
-                                className={classes.fullWidth}
+                                fullWidth
                                 margin="dense"
                             />
                         </Grid>
 
-                        {/* USUARIOS */}
-                        <Grid xs={12} sm={6} md={1} item>
+                        <Grid item xs={12} sm={6} md={1}>
                             <Field
                                 as={TextField}
                                 label={i18n.t("plans.form.users")}
                                 name="users"
                                 variant="outlined"
-                                className={classes.fullWidth}
+                                fullWidth
                                 margin="dense"
                                 type="number"
                             />
                         </Grid>
 
-                        {/* CONEXOES */}
-                        <Grid xs={12} sm={6} md={1} item>
+                        <Grid item xs={12} sm={6} md={1}>
                             <Field
                                 as={TextField}
                                 label={i18n.t("plans.form.connections")}
                                 name="connections"
                                 variant="outlined"
-                                className={classes.fullWidth}
+                                fullWidth
                                 margin="dense"
                                 type="number"
                             />
                         </Grid>
 
-                        {/* FILAS */}
-                        <Grid xs={12} sm={6} md={1} item>
+                        <Grid item xs={12} sm={6} md={1}>
                             <Field
                                 as={TextField}
                                 label="Filas"
                                 name="queues"
                                 variant="outlined"
-                                className={classes.fullWidth}
+                                fullWidth
                                 margin="dense"
                                 type="number"
                             />
                         </Grid>
 
-                        {/* VALOR */}
-                        <Grid xs={12} sm={6} md={1} item>
+                        <Grid item xs={12} sm={6} md={1}>
                             <Field
                                 as={TextField}
                                 label="Valor"
                                 name="value"
                                 variant="outlined"
-                                className={classes.fullWidth}
+                                fullWidth
                                 margin="dense"
                                 type="text"
                             />
                         </Grid>
 
-                        {/* CAMPANHAS */}
-                        <Grid xs={12} sm={6} md={2} item>
+                        <Grid item xs={12} sm={6} md={2}>
                             <FormControl margin="dense" variant="outlined" fullWidth>
                                 <InputLabel htmlFor="useCampaigns-selection">{i18n.t("plans.form.campaigns")}</InputLabel>
                                 <Field
@@ -187,8 +186,7 @@ export function PlanManagerForm(props) {
                             </FormControl>
                         </Grid>
 
-                        {/* AGENDAMENTOS */}
-                        <Grid xs={12} sm={8} md={2} item>
+                        <Grid item xs={12} sm={8} md={2}>
                             <FormControl margin="dense" variant="outlined" fullWidth>
                                 <InputLabel htmlFor="useSchedules-selection">{i18n.t("plans.form.schedules")}</InputLabel>
                                 <Field
@@ -205,8 +203,7 @@ export function PlanManagerForm(props) {
                             </FormControl>
                         </Grid>
 
-                        {/* CHAT INTERNO */}
-                        <Grid xs={12} sm={8} md={2} item>
+                        <Grid item xs={12} sm={8} md={2}>
                             <FormControl margin="dense" variant="outlined" fullWidth>
                                 <InputLabel htmlFor="useInternalChat-selection">Chat Interno</InputLabel>
                                 <Field
@@ -223,8 +220,7 @@ export function PlanManagerForm(props) {
                             </FormControl>
                         </Grid>
 
-                        {/* API Externa */}
-                        <Grid xs={12} sm={8} md={4} item>
+                        <Grid item xs={12} sm={8} md={4}>
                             <FormControl margin="dense" variant="outlined" fullWidth>
                                 <InputLabel htmlFor="useExternalApi-selection">API Externa</InputLabel>
                                 <Field
@@ -241,8 +237,7 @@ export function PlanManagerForm(props) {
                             </FormControl>
                         </Grid>
 
-                        {/* KANBAN */}
-                        <Grid xs={12} sm={8} md={2} item>
+                        <Grid item xs={12} sm={8} md={2}>
                             <FormControl margin="dense" variant="outlined" fullWidth>
                                 <InputLabel htmlFor="useKanban-selection">Kanban</InputLabel>
                                 <Field
@@ -259,14 +254,13 @@ export function PlanManagerForm(props) {
                             </FormControl>
                         </Grid>
 
-                        {/* OPENAI */}
-                        <Grid xs={12} sm={8} md={2} item>
+                        <Grid item xs={12} sm={8} md={2}>
                             <FormControl margin="dense" variant="outlined" fullWidth>
                                 <InputLabel htmlFor="useOpenAi-selection">Open.Ai</InputLabel>
                                 <Field
                                     as={Select}
                                     id="useOpenAi-selection"
-                                    label="Talk.Ai"
+                                    label="Open.Ai"
                                     labelId="useOpenAi-selection-label"
                                     name="useOpenAi"
                                     margin="dense"
@@ -277,8 +271,7 @@ export function PlanManagerForm(props) {
                             </FormControl>
                         </Grid>
 
-                        {/* INTEGRACOES */}
-                        <Grid xs={12} sm={8} md={2} item>
+                        <Grid item xs={12} sm={8} md={2}>
                             <FormControl margin="dense" variant="outlined" fullWidth>
                                 <InputLabel htmlFor="useIntegrations-selection">Integrações</InputLabel>
                                 <Field
@@ -294,266 +287,323 @@ export function PlanManagerForm(props) {
                                 </Field>
                             </FormControl>
                         </Grid>
-                    </Grid>
-                    <Grid spacing={2} justifyContent="flex-end" container>
 
-                        <Grid sm={3} md={2} item>
-                            <ButtonWithSpinner className={classes.fullWidth} loading={loading} onClick={() => onCancel()} variant="contained">
-                                {i18n.t("plans.form.clear")}
-                            </ButtonWithSpinner>
-                        </Grid>
-                        {record.id !== undefined ? (
-                            <Grid sm={3} md={2} item>
-                                <ButtonWithSpinner className={classes.fullWidth} loading={loading} onClick={() => onDelete(record)} variant="contained" color="secondary">
-                                    {i18n.t("plans.form.delete")}
+                        <Grid item xs={12}>
+                            <ActionButtons>
+                                <ButtonWithSpinner
+                                    variant="contained"
+                                    color="primary"
+                                    type="submit"
+                                    loading={loading}
+                                >
+                                    {i18n.t("plans.buttons.save")}
                                 </ButtonWithSpinner>
-                            </Grid>
-                        ) : null}
-                        <Grid sm={3} md={2} item>
-                            <ButtonWithSpinner className={classes.fullWidth} loading={loading} type="submit" variant="contained" color="primary">
-                                {i18n.t("plans.form.save")}
-                            </ButtonWithSpinner>
+                                <Button
+                                    variant="outlined"
+                                    color="secondary"
+                                    onClick={onCancel}
+                                >
+                                    {i18n.t("plans.buttons.cancel")}
+                                </Button>
+                                {initialValue && (
+                                    <Button
+                                        variant="outlined"
+                                        color="error"
+                                        onClick={onDelete}
+                                    >
+                                        {i18n.t("plans.buttons.delete")}
+                                    </Button>
+                                )}
+                            </ActionButtons>
                         </Grid>
                     </Grid>
                 </Form>
             )}
         </Formik>
-    )
+    );
 }
 
 export function PlansManagerGrid(props) {
-    const { records, onSelect } = props
-    const classes = useStyles()
-    
-    const renderCampaigns = (row) => {
-        return row.useCampaigns === false ? `${i18n.t("plans.form.no")}` : `${i18n.t("plans.form.yes")}`;
-    };
+    const { plans, onEdit, onDelete } = props;
 
-    const renderSchedules = (row) => {
-        return row.useSchedules === false ? `${i18n.t("plans.form.no")}` : `${i18n.t("plans.form.yes")}`;
-    };
+    const renderCampaigns = (row) => (
+        <StatusChip
+            label={row.useCampaigns ? i18n.t("plans.form.enabled") : i18n.t("plans.form.disabled")}
+            status={row.useCampaigns}
+        />
+    );
 
-    const renderInternalChat = (row) => {
-        return row.useInternalChat === false ? `${i18n.t("plans.form.no")}` : `${i18n.t("plans.form.yes")}`;
-    };
+    const renderSchedules = (row) => (
+        <StatusChip
+            label={row.useSchedules ? i18n.t("plans.form.enabled") : i18n.t("plans.form.disabled")}
+            status={row.useSchedules}
+        />
+    );
 
-    const renderExternalApi = (row) => {
-        return row.useExternalApi === false ? `${i18n.t("plans.form.no")}` : `${i18n.t("plans.form.yes")}`;
-    };
+    const renderInternalChat = (row) => (
+        <StatusChip
+            label={row.useInternalChat ? i18n.t("plans.form.enabled") : i18n.t("plans.form.disabled")}
+            status={row.useInternalChat}
+        />
+    );
 
-    const renderKanban = (row) => {
-        return row.useKanban === false ? `${i18n.t("plans.form.no")}` : `${i18n.t("plans.form.yes")}`;
-    };
+    const renderExternalApi = (row) => (
+        <StatusChip
+            label={row.useExternalApi ? i18n.t("plans.form.enabled") : i18n.t("plans.form.disabled")}
+            status={row.useExternalApi}
+        />
+    );
 
-    const renderOpenAi = (row) => {
-        return row.useOpenAi === false ? `${i18n.t("plans.form.no")}` : `${i18n.t("plans.form.yes")}`;
-    };
+    const renderKanban = (row) => (
+        <StatusChip
+            label={row.useKanban ? i18n.t("plans.form.enabled") : i18n.t("plans.form.disabled")}
+            status={row.useKanban}
+        />
+    );
 
-    const renderIntegrations = (row) => {
-        return row.useIntegrations === false ? `${i18n.t("plans.form.no")}` : `${i18n.t("plans.form.yes")}`;
-    };
+    const renderOpenAi = (row) => (
+        <StatusChip
+            label={row.useOpenAi ? i18n.t("plans.form.enabled") : i18n.t("plans.form.disabled")}
+            status={row.useOpenAi}
+        />
+    );
+
+    const renderIntegrations = (row) => (
+        <StatusChip
+            label={row.useIntegrations ? i18n.t("plans.form.enabled") : i18n.t("plans.form.disabled")}
+            status={row.useIntegrations}
+        />
+    );
 
     return (
-        <Paper className={classes.tableContainer}>
-            <Table
-                className={classes.fullWidth}
-                // size="small"
-                padding="none"
-                aria-label="a dense table"
-            >
-                <TableHead>
-                    <TableRow>
-                        <TableCell align="center" style={{ width: '1%' }}>#</TableCell>
-                        <TableCell align="left">{i18n.t("plans.form.name")}</TableCell>
-                        <TableCell align="center">{i18n.t("plans.form.users")}</TableCell>
-                        <TableCell align="center">{i18n.t("plans.form.connections")}</TableCell>
-                        <TableCell align="center">Filas</TableCell>
-                        <TableCell align="center">Valor</TableCell>
-                        <TableCell align="center">{i18n.t("plans.form.campaigns")}</TableCell>
-                        <TableCell align="center">{i18n.t("plans.form.schedules")}</TableCell>
-                        <TableCell align="center">Chat Interno</TableCell>
-                        <TableCell align="center">API Externa</TableCell>
-                        <TableCell align="center">Kanban</TableCell>
-                        <TableCell align="center">Open.Ai</TableCell>
-                        <TableCell align="center">Integrações</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {records.map((row) => (
-                        <TableRow key={row.id}>
-                            <TableCell align="center" style={{ width: '1%' }}>
-                                <IconButton onClick={() => onSelect(row)} aria-label="delete">
-                                    <EditIcon />
-                                </IconButton>
-                            </TableCell>
-                            <TableCell align="left">{row.name || '-'}</TableCell>
-                            <TableCell align="center">{row.users || '-'}</TableCell>
-                            <TableCell align="center">{row.connections || '-'}</TableCell>
-                            <TableCell align="center">{row.queues || '-'}</TableCell>
-                            <TableCell align="center">{i18n.t("plans.form.money")} {row.value ? row.value.toLocaleString('pt-br', { minimumFractionDigits: 2 }) : '00.00'}</TableCell>
-                            <TableCell align="center">{renderCampaigns(row)}</TableCell>
-                            <TableCell align="center">{renderSchedules(row)}</TableCell>
-                            <TableCell align="center">{renderInternalChat(row)}</TableCell>
-                            <TableCell align="center">{renderExternalApi(row)}</TableCell>
-                            <TableCell align="center">{renderKanban(row)}</TableCell>
-                            <TableCell align="center">{renderOpenAi(row)}</TableCell>
-                            <TableCell align="center">{renderIntegrations(row)}</TableCell>
+        <MainPaper>
+            <TableContainer>
+                <StyledTable>
+                    <TableHead>
+                        <TableRow>
+                            <StyledTableCell>Nome</StyledTableCell>
+                            <StyledTableCell>Usuários</StyledTableCell>
+                            <StyledTableCell>Conexões</StyledTableCell>
+                            <StyledTableCell>Filas</StyledTableCell>
+                            <StyledTableCell>Valor</StyledTableCell>
+                            <StyledTableCell>Campanhas</StyledTableCell>
+                            <StyledTableCell>Agendamentos</StyledTableCell>
+                            <StyledTableCell>Chat Interno</StyledTableCell>
+                            <StyledTableCell>API Externa</StyledTableCell>
+                            <StyledTableCell>Kanban</StyledTableCell>
+                            <StyledTableCell>Open.Ai</StyledTableCell>
+                            <StyledTableCell>Integrações</StyledTableCell>
+                            <StyledTableCell>Ações</StyledTableCell>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </Paper>
-    )
+                    </TableHead>
+                    <TableBody>
+                        {plans.map((row) => (
+                            <TableRow
+                                key={row.id}
+                                sx={{
+                                    '&:nth-of-type(odd)': {
+                                        backgroundColor: 'action.hover',
+                                    },
+                                }}
+                            >
+                                <TableCell>{row.name}</TableCell>
+                                <TableCell>{row.users}</TableCell>
+                                <TableCell>{row.connections}</TableCell>
+                                <TableCell>{row.queues}</TableCell>
+                                <TableCell>{row.value}</TableCell>
+                                <TableCell>{renderCampaigns(row)}</TableCell>
+                                <TableCell>{renderSchedules(row)}</TableCell>
+                                <TableCell>{renderInternalChat(row)}</TableCell>
+                                <TableCell>{renderExternalApi(row)}</TableCell>
+                                <TableCell>{renderKanban(row)}</TableCell>
+                                <TableCell>{renderOpenAi(row)}</TableCell>
+                                <TableCell>{renderIntegrations(row)}</TableCell>
+                                <TableCell>
+                                    <ActionButtons>
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => onEdit(row)}
+                                            color="primary"
+                                        >
+                                            <EditIcon />
+                                        </IconButton>
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => onDelete(row)}
+                                            color="error"
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </ActionButtons>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </StyledTable>
+            </TableContainer>
+        </MainPaper>
+    );
 }
 
-export default function PlansManager() {
-    const classes = useStyles()
-    const { list, save, update, remove } = usePlans()
-
-    const [showConfirmDialog, setShowConfirmDialog] = useState(false)
-    const [loading, setLoading] = useState(false)
-    const [records, setRecords] = useState([])
-    const [record, setRecord] = useState({
-        name: '',
-        users: 0,
-        connections: 0,
-        queues: 0,
-        value: 0,
-        useCampaigns: true,
-        useSchedules: true,
-        useInternalChat: true,
-        useExternalApi: true,
-        useKanban: true,
-        useOpenAi: true,
-        useIntegrations: true,
-    })
+const PlansManager = () => {
+    const [loading, setLoading] = useState(false);
+    const [plans, setPlans] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [planToDelete, setPlanToDelete] = useState(null);
 
     useEffect(() => {
-        async function fetchData() {
-            await loadPlans()
-        }
-        fetchData()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [record])
+        fetchPlans();
+    }, []);
 
-    const loadPlans = async () => {
-        setLoading(true)
+    const fetchPlans = async () => {
         try {
-            const planList = await list()
-            setRecords(planList)
-        } catch (e) {
-            toast.error('Não foi possível carregar a lista de registros')
+            setLoading(true);
+            const { data } = await api.get("/plans");
+            setPlans(data);
+        } catch (err) {
+            toastError(err);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false)
-    }
+    };
 
-    const handleSubmit = async (data) => {
-        setLoading(true)
-        console.log(data)
+    const handleOpenModal = () => {
+        setSelectedPlan(null);
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setSelectedPlan(null);
+        setShowModal(false);
+    };
+
+    const handleEdit = (plan) => {
+        setSelectedPlan(plan);
+        setShowModal(true);
+    };
+
+    const handleDelete = async (planId) => {
         try {
-            if (data.id !== undefined) {
-                await update(data)
-            } else {
-                await save(data)
-            }
-            await loadPlans()
-            handleCancel()
-            toast.success('Operação realizada com sucesso!')
-        } catch (e) {
-            toast.error('Não foi possível realizar a operação. Verifique se já existe uma plano com o mesmo nome ou se os campos foram preenchidos corretamente')
+            await api.delete(`/plans/${planId}`);
+            toast.success(i18n.t("plansManager.toasts.deleted"));
+            fetchPlans();
+        } catch (err) {
+            toastError(err);
         }
-        setLoading(false)
-    }
+    };
 
-    const handleDelete = async () => {
-        setLoading(true)
-        try {
-            await remove(record.id)
-            await loadPlans()
-            handleCancel()
-            toast.success('Operação realizada com sucesso!')
-        } catch (e) {
-            toast.error('Não foi possível realizar a operação')
+    const handleOpenDeleteModal = (plan) => {
+        setPlanToDelete(plan);
+        setShowDeleteModal(true);
+    };
+
+    const handleCloseDeleteModal = () => {
+        setPlanToDelete(null);
+        setShowDeleteModal(false);
+    };
+
+    const handleConfirmDelete = () => {
+        if (planToDelete) {
+            handleDelete(planToDelete.id);
+            handleCloseDeleteModal();
         }
-        setLoading(false)
-    }
-
-    const handleOpenDeleteDialog = () => {
-        setShowConfirmDialog(true)
-    }
-
-    const handleCancel = () => {
-        setRecord({
-            id: undefined,
-            name: '',
-            users: 0,
-            connections: 0,
-            queues: 0,
-            value: 0,
-            useCampaigns: true,
-            useSchedules: true,
-            useInternalChat: true,
-            useExternalApi: true,
-            useKanban: true,
-            useOpenAi: true,
-            useIntegrations: true
-        })
-    }
-
-    const handleSelect = (data) => {
-
-        let useCampaigns = data.useCampaigns === false ? false : true
-        let useSchedules = data.useSchedules === false ? false : true
-        let useInternalChat = data.useInternalChat === false ? false : true
-        let useExternalApi = data.useExternalApi === false ? false : true
-        let useKanban = data.useKanban === false ? false : true
-        let useOpenAi = data.useOpenAi === false ? false : true
-        let useIntegrations = data.useIntegrations === false ? false : true
-
-        setRecord({
-            id: data.id,
-            name: data.name || '',
-            users: data.users || 0,
-            connections: data.connections || 0,
-            queues: data.queues || 0,
-            value: data.value?.toLocaleString('pt-br', { minimumFractionDigits: 0 }) || 0,
-            useCampaigns,
-            useSchedules,
-            useInternalChat,
-            useExternalApi,
-            useKanban,
-            useOpenAi,
-            useIntegrations
-        })
-    }
+    };
 
     return (
-        <Paper className={classes.mainPaper} elevation={0}>
-            <Grid spacing={2} container>
-                <Grid xs={12} item>
-                    <PlanManagerForm
-                        initialValue={record}
-                        onDelete={handleOpenDeleteDialog}
-                        onSubmit={handleSubmit}
-                        onCancel={handleCancel}
-                        loading={loading}
-                    />
+        <MainPaper>
+            <Grid container spacing={3} alignItems="center" justifyContent="space-between">
+                <Grid item>
+                    <Typography variant="h4" component="h1">
+                        {i18n.t("plansManager.title")}
+                    </Typography>
                 </Grid>
-                <Grid xs={12} item>
-                    <PlansManagerGrid
-                        records={records}
-                        onSelect={handleSelect}
-                    />
+                <Grid item>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<AddIcon />}
+                        onClick={handleOpenModal}
+                    >
+                        {i18n.t("plansManager.buttons.new")}
+                    </Button>
                 </Grid>
             </Grid>
+
+            <TableContainer component={Paper} sx={{ mt: 3 }}>
+                <StyledTable>
+                    <TableHead>
+                        <TableRow>
+                            <StyledTableCell>{i18n.t("plansManager.table.name")}</StyledTableCell>
+                            <StyledTableCell align="center">{i18n.t("plansManager.table.users")}</StyledTableCell>
+                            <StyledTableCell align="center">{i18n.t("plansManager.table.connections")}</StyledTableCell>
+                            <StyledTableCell align="center">{i18n.t("plansManager.table.queues")}</StyledTableCell>
+                            <StyledTableCell align="center">{i18n.t("plansManager.table.value")}</StyledTableCell>
+                            <StyledTableCell align="center">{i18n.t("plansManager.table.status")}</StyledTableCell>
+                            <StyledTableCell align="center">{i18n.t("plansManager.table.actions")}</StyledTableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {plans.map((plan) => (
+                            <TableRow key={plan.id}>
+                                <TableCell>{plan.name}</TableCell>
+                                <TableCell align="center">{plan.users}</TableCell>
+                                <TableCell align="center">{plan.connections}</TableCell>
+                                <TableCell align="center">{plan.queues}</TableCell>
+                                <TableCell align="center">
+                                    {new Intl.NumberFormat('pt-BR', {
+                                        style: 'currency',
+                                        currency: 'BRL'
+                                    }).format(plan.value)}
+                                </TableCell>
+                                <TableCell align="center">
+                                    <StatusChip
+                                        label={plan.isActive ? i18n.t("plansManager.status.active") : i18n.t("plansManager.status.inactive")}
+                                        status={plan.isActive}
+                                    />
+                                </TableCell>
+                                <TableCell align="center">
+                                    <ActionButtons>
+                                        <IconButton
+                                            size="small"
+                                            color="primary"
+                                            onClick={() => handleEdit(plan)}
+                                        >
+                                            <EditIcon />
+                                        </IconButton>
+                                        <IconButton
+                                            size="small"
+                                            color="error"
+                                            onClick={() => handleOpenDeleteModal(plan)}
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </ActionButtons>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </StyledTable>
+            </TableContainer>
+
+            <PlanModal
+                open={showModal}
+                onClose={handleCloseModal}
+                plan={selectedPlan}
+                onSave={fetchPlans}
+            />
+
             <ConfirmationModal
-                title="Exclusão de Registro"
-                open={showConfirmDialog}
-                onClose={() => setShowConfirmDialog(false)}
-                onConfirm={() => handleDelete()}
+                title={i18n.t("plansManager.deleteModal.title")}
+                open={showDeleteModal}
+                onClose={handleCloseDeleteModal}
+                onConfirm={handleConfirmDelete}
             >
-                Deseja realmente excluir esse registro?
+                {i18n.t("plansManager.deleteModal.message")}
             </ConfirmationModal>
-        </Paper>
-    )
-}
+        </MainPaper>
+    );
+};
+
+export default PlansManager;

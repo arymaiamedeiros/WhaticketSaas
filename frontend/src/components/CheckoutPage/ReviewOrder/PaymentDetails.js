@@ -1,5 +1,5 @@
 import React, {useContext} from 'react';
-import { Typography, Grid } from '@material-ui/core';
+import { Typography, Grid } from '@mui/material';
 import useStyles from './styles';
 import { AuthContext } from "../../../context/Auth/AuthContext";
 

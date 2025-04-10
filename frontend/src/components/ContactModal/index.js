@@ -1,56 +1,54 @@
 import React, { useState, useEffect, useRef } from "react";
-
+import { styled } from '@mui/material/styles';
 import * as Yup from "yup";
 import { Formik, FieldArray, Form, Field } from "formik";
 import { toast } from "react-toastify";
-
-import { makeStyles } from "@material-ui/core/styles";
-import { green } from "@material-ui/core/colors";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import Typography from "@material-ui/core/Typography";
-import IconButton from "@material-ui/core/IconButton";
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import CircularProgress from "@material-ui/core/CircularProgress";
-
+import { green } from '@mui/material/colors';
+import {
+	Button,
+	TextField,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	Typography,
+	IconButton,
+	CircularProgress,
+	Box
+} from "@mui/material";
+import { DeleteOutline as DeleteOutlineIcon } from "@mui/icons-material";
 import { i18n } from "../../translate/i18n";
-
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
 
-const useStyles = makeStyles(theme => ({
-	root: {
-		display: "flex",
-		flexWrap: "wrap",
-	},
-	textField: {
-		marginRight: theme.spacing(1),
-		flex: 1,
-	},
+const Root = styled(Box)({
+	display: "flex",
+	flexWrap: "wrap",
+});
 
-	extraAttr: {
-		display: "flex",
-		justifyContent: "center",
-		alignItems: "center",
-	},
-
-	btnWrapper: {
-		position: "relative",
-	},
-
-	buttonProgress: {
-		color: green[500],
-		position: "absolute",
-		top: "50%",
-		left: "50%",
-		marginTop: -12,
-		marginLeft: -12,
-	},
+const StyledTextField = styled(TextField)(({ theme }) => ({
+	marginRight: theme.spacing(1),
+	flex: 1,
 }));
+
+const ExtraAttrContainer = styled(Box)({
+	display: "flex",
+	justifyContent: "center",
+	alignItems: "center",
+});
+
+const ButtonWrapper = styled(Box)({
+	position: "relative",
+});
+
+const ButtonProgress = styled(CircularProgress)({
+	color: green[500],
+	position: "absolute",
+	top: "50%",
+	left: "50%",
+	marginTop: -12,
+	marginLeft: -12,
+});
 
 const ContactSchema = Yup.object().shape({
 	name: Yup.string()
@@ -62,9 +60,7 @@ const ContactSchema = Yup.object().shape({
 });
 
 const ContactModal = ({ open, onClose, contactId, initialValues, onSave }) => {
-	const classes = useStyles();
 	const isMounted = useRef(true);
-
 	const initialState = {
 		name: "",
 		number: "",
@@ -92,7 +88,6 @@ const ContactModal = ({ open, onClose, contactId, initialValues, onSave }) => {
 			try {
 				const { data } = await api.get(`/contacts/${contactId}`);
 				if (isMounted.current) {
-					console.log(data)
 					setContact(data);
 				}
 			} catch (err) {
@@ -127,9 +122,9 @@ const ContactModal = ({ open, onClose, contactId, initialValues, onSave }) => {
 	};
 
 	return (
-		<div className={classes.root}>
+		<Root>
 			<Dialog open={open} onClose={handleClose} maxWidth="lg" scroll="paper">
-				<DialogTitle id="form-dialog-title">
+				<DialogTitle>
 					{contactId
 						? `${i18n.t("contactModal.title.edit")}`
 						: `${i18n.t("contactModal.title.add")}`}
@@ -152,7 +147,7 @@ const ContactModal = ({ open, onClose, contactId, initialValues, onSave }) => {
 									{i18n.t("contactModal.form.mainInfo")}
 								</Typography>
 								<Field
-									as={TextField}
+									as={StyledTextField}
 									label={i18n.t("contactModal.form.name")}
 									name="name"
 									autoFocus
@@ -160,10 +155,9 @@ const ContactModal = ({ open, onClose, contactId, initialValues, onSave }) => {
 									helperText={touched.name && errors.name}
 									variant="outlined"
 									margin="dense"
-									className={classes.textField}
 								/>
 								<Field
-									as={TextField}
+									as={StyledTextField}
 									label={i18n.t("contactModal.form.number")}
 									name="number"
 									error={touched.number && Boolean(errors.number)}
@@ -172,7 +166,7 @@ const ContactModal = ({ open, onClose, contactId, initialValues, onSave }) => {
 									variant="outlined"
 									margin="dense"
 								/>
-								<div>
+								<Box>
 									<Field
 										as={TextField}
 										label={i18n.t("contactModal.form.email")}
@@ -184,7 +178,7 @@ const ContactModal = ({ open, onClose, contactId, initialValues, onSave }) => {
 										margin="dense"
 										variant="outlined"
 									/>
-								</div>
+								</Box>
 								<Typography
 									style={{ marginBottom: 8, marginTop: 12 }}
 									variant="subtitle1"
@@ -277,7 +271,7 @@ const ContactModal = ({ open, onClose, contactId, initialValues, onSave }) => {
 					)}
 				</Formik>
 			</Dialog>
-		</div>
+		</Root>
 	);
 };
 

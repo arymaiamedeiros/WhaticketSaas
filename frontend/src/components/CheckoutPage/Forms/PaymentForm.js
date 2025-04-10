@@ -1,68 +1,66 @@
 import React, { useState, useEffect, useReducer } from 'react';
-import Button from '@material-ui/core/Button';
-import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
-import CardHeader from '@material-ui/core/CardHeader';
-import Grid from '@material-ui/core/Grid';
-import StarIcon from '@material-ui/icons/StarBorder';
-import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
-
-import IconButton from '@material-ui/core/IconButton';
-import MinimizeIcon from '@material-ui/icons/Minimize';
-import AddIcon from '@material-ui/icons/Add';
+import { styled } from '@mui/material/styles';
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CardHeader,
+  Grid,
+  Typography,
+  IconButton,
+} from '@mui/material';
+import {
+  Star as StarIcon,
+  Minimize as MinimizeIcon,
+  Add as AddIcon,
+} from '@mui/icons-material';
 
 import usePlans from "../../../hooks/usePlans";
 import useCompanies from "../../../hooks/useCompanies";
 
-const useStyles = makeStyles((theme) => ({
-  '@global': {
-    ul: {
-      margin: 0,
-      padding: 0,
-      listStyle: 'none',
-    },
-  },
-  margin: {
-    margin: theme.spacing(1),
-  },
-
-
-  cardHeader: {
-    backgroundColor:
-      theme.palette.type === 'light' ? theme.palette.grey[200] : theme.palette.grey[700],
-  },
-  cardPricing: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'baseline',
-    marginBottom: theme.spacing(2),
-  },
-  footer: {
-    borderTop: `1px solid ${theme.palette.divider}`,
-    marginTop: theme.spacing(8),
-    paddingTop: theme.spacing(3),
-    paddingBottom: theme.spacing(3),
-    [theme.breakpoints.up('sm')]: {
-      paddingTop: theme.spacing(6),
-      paddingBottom: theme.spacing(6),
-    },
-  },
-
-  customCard: {
-    display: "flex",
-    marginTop: "16px",
-    alignItems: "center",
-    flexDirection: "column",
-  },
-  custom: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  }
+const StyledCardHeader = styled(CardHeader)(({ theme }) => ({
+  backgroundColor: theme.palette.mode === 'light' ? theme.palette.grey[200] : theme.palette.grey[700],
 }));
 
+const CardPricing = styled('div')(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'baseline',
+  marginBottom: theme.spacing(2),
+}));
+
+const Footer = styled('div')(({ theme }) => ({
+  borderTop: `1px solid ${theme.palette.divider}`,
+  marginTop: theme.spacing(8),
+  paddingTop: theme.spacing(3),
+  paddingBottom: theme.spacing(3),
+  [theme.breakpoints.up('sm')]: {
+    paddingTop: theme.spacing(6),
+    paddingBottom: theme.spacing(6),
+  },
+}));
+
+const CustomCard = styled('div')({
+  display: "flex",
+  marginTop: "16px",
+  alignItems: "center",
+  flexDirection: "column",
+});
+
+const Custom = styled('div')({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+});
+
+const GlobalStyles = styled('div')({
+  '& ul': {
+    margin: 0,
+    padding: 0,
+    listStyle: 'none',
+  },
+});
 
 export default function Pricing(props) {
   const {
@@ -72,41 +70,38 @@ export default function Pricing(props) {
   } = props;
 
   const handleChangeAdd = (event, newValue) => {
-    if (newValue < 3) return
+    if (newValue < 3) return;
 
     const newPrice = 11.00;
-
     setUsersPlans(newValue);
     setCustomValuePlans(customValuePlans + newPrice);
-  }
+  };
 
   const handleChangeMin = (event, newValue) => {
-    if (newValue < 3) return
+    if (newValue < 3) return;
 
     const newPrice = 11;
-
     setUsersPlans(newValue);
     setCustomValuePlans(customValuePlans - newPrice);
-  }
+  };
 
   const handleChangeConnectionsAdd = (event, newValue) => {
-    if (newValue < 3) return
+    if (newValue < 3) return;
     const newPrice = 20.00;
     setConnectionsPlans(newValue);
     setCustomValuePlans(customValuePlans + newPrice);
-  }
+  };
 
   const handleChangeConnectionsMin = (event, newValue) => {
-    if (newValue < 3) return
+    if (newValue < 3) return;
     const newPrice = 20;
     setConnectionsPlans(newValue);
     setCustomValuePlans(customValuePlans - newPrice);
-  }
+  };
 
   const { list, finder } = usePlans();
   const { find } = useCompanies();
 
-  const classes = useStyles();
   const [usersPlans, setUsersPlans] = React.useState(3);
   const [companiesPlans, setCompaniesPlans] = useState(0);
   const [connectionsPlans, setConnectionsPlans] = React.useState(3);
@@ -120,7 +115,7 @@ export default function Pricing(props) {
       await loadCompanies();
     }
     fetchData();
-  }, [])
+  }, []);
 
   const loadCompanies = async () => {
     setLoading(true);
@@ -130,17 +125,16 @@ export default function Pricing(props) {
       await loadPlans(companiesList.planId);
     } catch (e) {
       console.log(e);
-      // toast.error("Não foi possível carregar a lista de registros");
     }
     setLoading(false);
   };
+
   const loadPlans = async (companiesPlans) => {
     setLoading(true);
     try {
       const plansCompanies = await finder(companiesPlans);
-      const plans = []
+      const plans = [];
 
-      //plansCompanies.forEach((plan) => {
       plans.push({
         title: plansCompanies.name,
         planId: plansCompanies.id,
@@ -155,49 +149,42 @@ export default function Pricing(props) {
         queues: plansCompanies.queues,
         buttonText: 'SELECIONAR',
         buttonVariant: 'outlined',
-      })
+      });
 
-      // setStoragePlans(data);
-      //});
       setStoragePlans(plans);
     } catch (e) {
       console.log(e);
-      // toast.error("Não foi possível carregar a lista de registros");
     }
     setLoading(false);
   };
 
+  const tiers = storagePlans;
 
-  const tiers = storagePlans
   return (
     <React.Fragment>
+      <GlobalStyles />
       <Grid container spacing={3}>
         {tiers.map((tier) => (
-          // Enterprise card is full width at sm breakpoint
-          <Grid item key={tier.title} xs={12} sm={tier.title === 'Enterprise' ? 12 : 12} md={12}>
+          <Grid item key={tier.title} xs={12} sm={12} md={12}>
             <Card>
-              <CardHeader
+              <StyledCardHeader
                 title={tier.title}
                 subheader={tier.subheader}
                 titleTypographyProps={{ align: 'center' }}
                 subheaderTypographyProps={{ align: 'center' }}
                 action={tier.title === 'Pro' ? <StarIcon /> : null}
-                className={classes.cardHeader}
               />
               <CardContent>
-                <div className={classes.cardPricing}>
+                <CardPricing>
                   <Typography component="h2" variant="h3" color="textPrimary">
-                    {
-
-                      <React.Fragment>
-                        R${tier.price.toLocaleString('pt-br', { minimumFractionDigits: 2 })}
-                      </React.Fragment>
-                    }
+                    <React.Fragment>
+                      R${tier.price.toLocaleString('pt-br', { minimumFractionDigits: 2 })}
+                    </React.Fragment>
                   </Typography>
                   <Typography variant="h6" color="textSecondary">
                     /mês
                   </Typography>
-                </div>
+                </CardPricing>
                 <ul>
                   {tier.description.map((line) => (
                     <Typography component="li" variant="subtitle1" align="center" key={line}>
@@ -222,8 +209,7 @@ export default function Pricing(props) {
                       setFieldValue("plan", JSON.stringify(tier));
                     }
                     setActiveStep(activeStep + 1);
-                  }
-                  }
+                  }}
                 >
                   {tier.buttonText}
                 </Button>

@@ -1,21 +1,21 @@
 import React, { useState, useEffect, useReducer } from "react";
 import { toast } from "react-toastify";
-
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import IconButton from "@material-ui/core/IconButton";
-import SearchIcon from "@material-ui/icons/Search";
-import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
-
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import EditIcon from "@material-ui/icons/Edit";
+import { styled } from '@mui/material/styles';
+import {
+  Paper,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  IconButton,
+  TextField,
+  InputAdornment,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import EditIcon from '@mui/icons-material/Edit';
 
 import MainContainer from "../../components/MainContainer";
 import MainHeader from "../../components/MainHeader";
@@ -31,6 +31,13 @@ import toastError from "../../errors/toastError";
 import { socketConnection } from "../../services/socket";
 
 import moment from "moment";
+
+const MainPaper = styled(Paper)(({ theme }) => ({
+  flex: 1,
+  padding: theme.spacing(1),
+  overflowY: "scroll",
+  ...theme.scrollbarStyles,
+}));
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_INVOICES") {
@@ -76,18 +83,7 @@ const reducer = (state, action) => {
   }
 };
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-}));
-
 const Invoices = () => {
-  const classes = useStyles();
-
   const [loading, setLoading] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -97,18 +93,17 @@ const Invoices = () => {
   const [selectedContactId, setSelectedContactId] = useState(null);
   const [contactModalOpen, setContactModalOpen] = useState(false);
 
-
   const handleOpenContactModal = (invoices) => {
     setStoragePlans(invoices);
     setSelectedContactId(null);
     setContactModalOpen(true);
   };
 
-
   const handleCloseContactModal = () => {
     setSelectedContactId(null);
     setContactModalOpen(false);
   };
+
   useEffect(() => {
     dispatch({ type: "RESET" });
     setPageNumber(1);
@@ -134,7 +129,6 @@ const Invoices = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [searchParam, pageNumber]);
 
-
   const loadMore = () => {
     setPageNumber((prevState) => prevState + 1);
   };
@@ -146,6 +140,7 @@ const Invoices = () => {
       loadMore();
     }
   };
+
   const rowStyle = (record) => {
     const hoje = moment(moment()).format("DD/MM/yyyy");
     const vencimento = moment(record.dueDate).format("DD/MM/yyyy");
@@ -170,8 +165,7 @@ const Invoices = () => {
     } else {
       return "Em Aberto"
     }
-
-  }
+  };
 
   return (
     <MainContainer>
@@ -181,16 +175,11 @@ const Invoices = () => {
         aria-labelledby="form-dialog-title"
         Invoice={storagePlans}
         contactId={selectedContactId}
-
-      ></SubscriptionModal>
+      />
       <MainHeader>
         <Title>Faturas</Title>
       </MainHeader>
-      <Paper
-        className={classes.mainPaper}
-        variant="outlined"
-        onScroll={handleScroll}
-      >
+      <MainPaper variant="outlined" onScroll={handleScroll}>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -208,11 +197,17 @@ const Invoices = () => {
                 <TableRow style={rowStyle(invoices)} key={invoices.id}>
                   <TableCell align="center">{invoices.id}</TableCell>
                   <TableCell align="center">{invoices.detail}</TableCell>
-                  <TableCell style={{ fontWeight: 'bold' }} align="center">{invoices.value.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' })}</TableCell>
-                  <TableCell align="center">{moment(invoices.dueDate).format("DD/MM/YYYY")}</TableCell>
-                  <TableCell style={{ fontWeight: 'bold' }} align="center">{rowStatus(invoices)}</TableCell>
+                  <TableCell style={{ fontWeight: 'bold' }} align="center">
+                    {invoices.value.toLocaleString('pt-br', { style: 'currency', currency: 'BRL' })}
+                  </TableCell>
                   <TableCell align="center">
-                    {rowStatus(invoices) !== "Pago" ?
+                    {moment(invoices.dueDate).format("DD/MM/YYYY")}
+                  </TableCell>
+                  <TableCell style={{ fontWeight: 'bold' }} align="center">
+                    {rowStatus(invoices)}
+                  </TableCell>
+                  <TableCell align="center">
+                    {rowStatus(invoices) !== "Pago" ? (
                       <Button
                         size="small"
                         variant="outlined"
@@ -220,16 +215,15 @@ const Invoices = () => {
                         onClick={() => handleOpenContactModal(invoices)}
                       >
                         PAGAR
-                      </Button> :
+                      </Button>
+                    ) : (
                       <Button
                         size="small"
-                        variant="outlined" 
-                        /* color="secondary"
-                        disabled */
+                        variant="outlined"
                       >
                         PAGO 
-                      </Button>}
-
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -237,7 +231,7 @@ const Invoices = () => {
             </>
           </TableBody>
         </Table>
-      </Paper>
+      </MainPaper>
     </MainContainer>
   );
 };

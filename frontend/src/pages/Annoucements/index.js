@@ -2,21 +2,22 @@ import React, { useState, useEffect, useReducer, useContext } from "react";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
 
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import IconButton from "@material-ui/core/IconButton";
-import SearchIcon from "@material-ui/icons/Search";
-import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
+import { styled } from "@mui/material/styles";
+import Paper from "@mui/material/Paper";
+import Button from "@mui/material/Button";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import IconButton from "@mui/material/IconButton";
+import SearchIcon from "@mui/icons-material/Search";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
+import Grid from "@mui/material/Grid";
 
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import EditIcon from "@material-ui/icons/Edit";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import EditIcon from "@mui/icons-material/Edit";
 
 import MainContainer from "../../components/MainContainer";
 import MainHeader from "../../components/MainHeader";
@@ -28,7 +29,6 @@ import TableRowSkeleton from "../../components/TableRowSkeleton";
 import AnnouncementModal from "../../components/AnnouncementModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import toastError from "../../errors/toastError";
-import { Grid } from "@material-ui/core";
 import { isArray } from "lodash";
 import { socketConnection } from "../../services/socket";
 import { AuthContext } from "../../context/Auth/AuthContext";
@@ -81,20 +81,15 @@ const reducer = (state, action) => {
   }
 };
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    // padding: theme.spacing(1),
-    padding: theme.padding,
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
+const MainPaper = styled(Paper)(({ theme }) => ({
+  flex: 1,
+  padding: theme.spacing(1),
+  overflowY: "scroll",
+  ...theme.scrollbarStyles,
 }));
 
 const Announcements = () => {
-  const classes = useStyles();
   const history = useHistory();
-
   const { user } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
@@ -165,25 +160,6 @@ const Announcements = () => {
     }
   };
 
-  const handleOpenAnnouncementModal = () => {
-    setSelectedAnnouncement(null);
-    setAnnouncementModalOpen(true);
-  };
-
-  const handleCloseAnnouncementModal = () => {
-    setSelectedAnnouncement(null);
-    setAnnouncementModalOpen(false);
-  };
-
-  const handleSearch = (event) => {
-    setSearchParam(event.target.value.toLowerCase());
-  };
-
-  const handleEditAnnouncement = (announcement) => {
-    setSelectedAnnouncement(announcement);
-    setAnnouncementModalOpen(true);
-  };
-
   const handleDeleteAnnouncement = async (announcement) => {
     try {
       if (announcement.mediaName)
@@ -225,82 +201,57 @@ const Announcements = () => {
   };
 
   return (
-    <MainContainer >
+    <MainContainer>
+      <AnnouncementModal
+        open={announcementModalOpen}
+        onClose={() => {
+          setAnnouncementModalOpen(false);
+          setSelectedAnnouncement(null);
+        }}
+        announcementId={selectedAnnouncement?.id}
+      />
       <ConfirmationModal
-        title={
-          deletingAnnouncement &&
-          `${i18n.t("announcements.confirmationModal.deleteTitle")} ${deletingAnnouncement.name
-          }?`
-        }
+        title={i18n.t("announcements.confirmationModal.deleteTitle")}
         open={confirmModalOpen}
-        onClose={setConfirmModalOpen}
-        onConfirm={() => handleDeleteAnnouncement(deletingAnnouncement)}
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={handleDeleteAnnouncement}
       >
         {i18n.t("announcements.confirmationModal.deleteMessage")}
       </ConfirmationModal>
-      <AnnouncementModal
-        resetPagination={() => {
-          setPageNumber(1);
-          fetchAnnouncements();
-        }}
-        open={announcementModalOpen}
-        onClose={handleCloseAnnouncementModal}
-        aria-labelledby="form-dialog-title"
-        announcementId={selectedAnnouncement && selectedAnnouncement.id}
-      />
       <MainHeader>
-        <Grid style={{ width: "99.6%" }} container>
-          <Grid xs={12} sm={8} item>
-            <Title>{i18n.t("announcements.title")} ({announcements.length})</Title>
-          </Grid>
-          <Grid xs={12} sm={4} item>
-            <Grid spacing={2} container>
-              <Grid xs={6} sm={6} item>
-                <TextField
-                  fullWidth
-                  placeholder={i18n.t("announcements.searchPlaceholder")}
-                  type="search"
-                  value={searchParam}
-                  onChange={handleSearch}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon style={{ color: "gray" }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid xs={6} sm={6} item>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  onClick={handleOpenAnnouncementModal}
-                  color="primary"
-                >
-                  {i18n.t("announcements.buttons.add")}
-                </Button>
-              </Grid>
-            </Grid>
+        <Title>{i18n.t("announcements.title")}</Title>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setAnnouncementModalOpen(true)}
+        >
+          {i18n.t("announcements.buttons.add")}
+        </Button>
+      </MainHeader>
+      <MainPaper variant="outlined" onScroll={handleScroll}>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <TextField
+              placeholder={i18n.t("announcements.searchPlaceholder")}
+              type="search"
+              value={searchParam}
+              onChange={(e) => setSearchParam(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon style={{ color: "gray" }} />
+                  </InputAdornment>
+                ),
+              }}
+              fullWidth
+            />
           </Grid>
         </Grid>
-      </MainHeader>
-      <Paper
-        className={classes.mainPaper}
-        variant="outlined"
-        onScroll={handleScroll}
-      >
         <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell align="center">
                 {i18n.t("announcements.table.title")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("announcements.table.priority")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("announcements.table.mediaName")}
               </TableCell>
               <TableCell align="center">
                 {i18n.t("announcements.table.status")}
@@ -311,46 +262,51 @@ const Announcements = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            <>
-              {announcements.map((announcement) => (
+            {loading ? (
+              <TableRowSkeleton columns={3} />
+            ) : (
+              announcements.map((announcement) => (
                 <TableRow key={announcement.id}>
                   <TableCell align="center">{announcement.title}</TableCell>
                   <TableCell align="center">
-                    {translatePriority(announcement.priority)}
-                  </TableCell>
-                  <TableCell align="center">
-                    {announcement.mediaName ?? i18n.t("quickMessages.noAttachment")}
-                  </TableCell>
-                  <TableCell align="center">
-                    {announcement.status ? i18n.t("announcements.active") : i18n.t("announcements.inactive")}
+                    {announcement.status === "active" ? (
+                      <span style={{ color: "green" }}>
+                        {i18n.t("announcements.status.active")}
+                      </span>
+                    ) : (
+                      <span style={{ color: "red" }}>
+                        {i18n.t("announcements.status.inactive")}
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell align="center">
                     <IconButton
                       size="small"
-                      onClick={() => handleEditAnnouncement(announcement)}
+                      onClick={() => {
+                        setSelectedAnnouncement(announcement);
+                        setAnnouncementModalOpen(true);
+                      }}
                     >
                       <EditIcon />
                     </IconButton>
-
                     <IconButton
                       size="small"
-                      onClick={(e) => {
-                        setConfirmModalOpen(true);
+                      onClick={() => {
                         setDeletingAnnouncement(announcement);
+                        setConfirmModalOpen(true);
                       }}
                     >
                       <DeleteOutlineIcon />
                     </IconButton>
                   </TableCell>
                 </TableRow>
-              ))}
-              {loading && <TableRowSkeleton columns={5} />}
-            </>
+              ))
+            )}
           </TableBody>
         </Table>
-      </Paper>
-    </MainContainer >
-  )
+      </MainPaper>
+    </MainContainer>
+  );
 };
 
 export default Announcements;

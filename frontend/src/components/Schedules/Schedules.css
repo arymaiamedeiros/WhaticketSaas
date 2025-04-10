@@ -1,0 +1,362 @@
+.schedules-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.schedules-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.schedules-title {
+    font-size: 24px;
+    font-weight: 500;
+    color: #333;
+}
+
+.schedules-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.schedules-button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.schedules-button-primary {
+    background-color: #1976d2;
+    color: white;
+}
+
+.schedules-button-primary:hover {
+    background-color: #1565c0;
+}
+
+.schedules-button-secondary {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.schedules-button-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.schedules-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+.schedules-table th,
+.schedules-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.schedules-table th {
+    background-color: #f5f5f5;
+    font-weight: 500;
+    color: #333;
+}
+
+.schedules-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+.schedules-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.schedules-status-active {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.schedules-status-inactive {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.schedules-actions-cell {
+    display: flex;
+    gap: 8px;
+}
+
+.schedules-icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.schedules-icon-button:hover {
+    background-color: #f5f5f5;
+}
+
+.schedules-icon {
+    width: 20px;
+    height: 20px;
+    color: #666;
+}
+
+.schedules-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.schedules-dialog-content {
+    background-color: white;
+    border-radius: 4px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+}
+
+.schedules-dialog-header {
+    padding: 16px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.schedules-dialog-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: #333;
+}
+
+.schedules-dialog-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.schedules-dialog-close:hover {
+    background-color: #f5f5f5;
+}
+
+.schedules-dialog-body {
+    padding: 16px;
+}
+
+.schedules-form-group {
+    margin-bottom: 16px;
+}
+
+.schedules-form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+}
+
+.schedules-form-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.schedules-form-input:focus {
+    border-color: #1976d2;
+    outline: none;
+}
+
+.schedules-dialog-footer {
+    padding: 16px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.schedules-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 8px;
+}
+
+.schedules-pagination-button {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.schedules-pagination-button:hover {
+    background-color: #f5f5f5;
+}
+
+.schedules-pagination-button.active {
+    background-color: #1976d2;
+    color: white;
+    border-color: #1976d2;
+}
+
+.schedules-pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.schedules-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.schedules-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #1976d2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.schedules-error {
+    color: #c62828;
+    padding: 16px;
+    background-color: #ffebee;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+
+.schedules-success {
+    color: #2e7d32;
+    padding: 16px;
+    background-color: #e8f5e9;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+
+.schedules-empty {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.schedules-empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    color: #bdbdbd;
+}
+
+.schedules-empty-text {
+    font-size: 16px;
+    color: #666;
+}
+
+.schedules-search {
+    margin-bottom: 20px;
+}
+
+.schedules-search-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.schedules-search-input:focus {
+    border-color: #1976d2;
+    outline: none;
+}
+
+.schedules-filters {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.schedules-filter {
+    flex: 1;
+    min-width: 200px;
+}
+
+.schedules-filter-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+}
+
+.schedules-filter-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: white;
+}
+
+.schedules-filter-select:focus {
+    border-color: #1976d2;
+    outline: none;
+}
+
+.schedules-responsive-table {
+    overflow-x: auto;
+}
+
+@media (max-width: 600px) {
+    .schedules-table th,
+    .schedules-table td {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .schedules-dialog-content {
+        width: 95%;
+    }
+
+    .schedules-filters {
+        flex-direction: column;
+    }
+
+    .schedules-filter {
+        width: 100%;
+    }
+} 

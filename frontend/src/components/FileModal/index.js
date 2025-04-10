@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-
+import { styled } from '@mui/material/styles';
 import * as Yup from "yup";
 import {
     Formik,
@@ -19,65 +19,58 @@ import {
     DialogTitle,
     Divider,
     Grid,
-    makeStyles,
-    TextField
-} from "@material-ui/core";
-import IconButton from "@material-ui/core/IconButton";
-import Typography from "@material-ui/core/Typography";
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import AttachFileIcon from "@material-ui/icons/AttachFile";
-
-import { green } from "@material-ui/core/colors";
+    TextField,
+    Typography,
+    IconButton
+} from "@mui/material";
+import { DeleteOutline as DeleteOutlineIcon, AttachFile as AttachFileIcon } from "@mui/icons-material";
+import { green } from "@mui/material/colors";
 
 import { i18n } from "../../translate/i18n";
-
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 4
-    },
-    multFieldLine: {
-        display: "flex",
-        "& > *:not(:last-child)": {
-            marginRight: theme.spacing(1),
-        },
-    },
-    textField: {
+const Root = styled('div')({
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 4
+});
+
+const MultFieldLine = styled('div')(({ theme }) => ({
+    display: "flex",
+    "& > *:not(:last-child)": {
         marginRight: theme.spacing(1),
-        flex: 1,
     },
+}));
 
-    extraAttr: {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-    },
+const StyledTextField = styled(TextField)({
+    marginRight: 8,
+    flex: 1,
+});
 
-    btnWrapper: {
-        position: "relative",
-    },
+const ExtraAttr = styled('div')({
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+});
 
-    buttonProgress: {
-        color: green[500],
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        marginTop: -12,
-        marginLeft: -12,
-    },
-    formControl: {
-        margin: theme.spacing(1),
-        minWidth: 2000,
-    },
-    colorAdorment: {
-        width: 20,
-        height: 20,
-    },
+const ButtonWrapper = styled('div')({
+    position: "relative",
+});
+
+const ButtonProgress = styled(CircularProgress)({
+    color: green[500],
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginTop: -12,
+    marginLeft: -12,
+});
+
+const StyledFormControl = styled('div')(({ theme }) => ({
+    margin: theme.spacing(1),
+    minWidth: 2000,
 }));
 
 const FileListSchema = Yup.object().shape({
@@ -89,16 +82,14 @@ const FileListSchema = Yup.object().shape({
 });
 
 const FilesModal = ({ open, onClose, fileListId, reload }) => {
-    const classes = useStyles();
     const { user } = useContext(AuthContext);
-    const [ files, setFiles ] = useState([]);
+    const [files, setFiles] = useState([]);
     const [selectedFileNames, setSelectedFileNames] = useState([]);
-
 
     const initialState = {
         name: "",
         message: "",
-        options: [{ name: "", path:"", mediaType:"" }],
+        options: [{ name: "", path: "", mediaType: "" }],
     };
 
     const [fileList, setFileList] = useState(initialState);
@@ -123,37 +114,35 @@ const FilesModal = ({ open, onClose, fileListId, reload }) => {
     };
 
     const handleSaveFileList = async (values) => {
-
         const uploadFiles = async (options, filesOptions, id) => {
-                const formData = new FormData();
-                formData.append("fileId", id);
-                formData.append("typeArch", "fileList")
-                filesOptions.forEach((fileOption, index) => {
-                    if (fileOption.file) {
-                        formData.append("files", fileOption.file);
-                        formData.append("mediaType", fileOption.file.type)
-                        formData.append("name", options[index].name);
-                        formData.append("id", options[index].id);
-                    }
-                });
-      
-              try {
+            const formData = new FormData();
+            formData.append("fileId", id);
+            formData.append("typeArch", "fileList")
+            filesOptions.forEach((fileOption, index) => {
+                if (fileOption.file) {
+                    formData.append("files", fileOption.file);
+                    formData.append("mediaType", fileOption.file.type)
+                    formData.append("name", options[index].name);
+                    formData.append("id", options[index].id);
+                }
+            });
+
+            try {
                 const { data } = await api.post(`/files/uploadList/${id}`, formData);
                 setFiles([]);
                 return data;
-              } catch (err) {
+            } catch (err) {
                 toastError(err);
-              }
+            }
             return null;
         }
 
         const fileData = { ...values, userId: user.id };
-        
+
         try {
             if (fileListId) {
                 const { data } = await api.put(`/files/${fileListId}`, fileData)
                 if (data.options.length > 0)
-
                     uploadFiles(data.options, values.options, fileListId)
             } else {
                 const { data } = await api.post("/files", fileData);
@@ -163,7 +152,7 @@ const FilesModal = ({ open, onClose, fileListId, reload }) => {
             toast.success(i18n.t("fileModal.success"));
             if (typeof reload == 'function') {
                 reload();
-            }            
+            }
         } catch (err) {
             toastError(err);
         }
@@ -171,7 +160,7 @@ const FilesModal = ({ open, onClose, fileListId, reload }) => {
     };
 
     return (
-        <div className={classes.root}>
+        <Root>
             <Dialog
                 open={open}
                 onClose={handleClose}
@@ -195,9 +184,9 @@ const FilesModal = ({ open, onClose, fileListId, reload }) => {
                     {({ touched, errors, isSubmitting, values }) => (
                         <Form>
                             <DialogContent dividers>
-                                <div className={classes.multFieldLine}>
+                                <MultFieldLine>
                                     <Field
-                                        as={TextField}
+                                        as={StyledTextField}
                                         label={i18n.t("fileModal.form.name")}
                                         name="name"
                                         error={touched.name && Boolean(errors.name)}
@@ -206,11 +195,11 @@ const FilesModal = ({ open, onClose, fileListId, reload }) => {
                                         margin="dense"
                                         fullWidth
                                     />
-                                </div>
+                                </MultFieldLine>
                                 <br />
-                                <div className={classes.multFieldLine}>
+                                <MultFieldLine>
                                     <Field
-                                        as={TextField}
+                                        as={StyledTextField}
                                         label={i18n.t("fileModal.form.message")}
                                         type="message"
                                         multiline
@@ -226,9 +215,9 @@ const FilesModal = ({ open, onClose, fileListId, reload }) => {
                                         variant="outlined"
                                         margin="dense"
                                     />
-                                </div>
+                                </MultFieldLine>
                                 <Typography
-                                    style={{ marginBottom: 8, marginTop: 12 }}
+                                    sx={{ mb: 1, mt: 3 }}
                                     variant="subtitle1"
                                 >
                                     {i18n.t("fileModal.form.fileOptions")}
@@ -239,111 +228,106 @@ const FilesModal = ({ open, onClose, fileListId, reload }) => {
                                         <>
                                             {values.options &&
                                                 values.options.length > 0 &&
-                                                values.options.map((info, index) => (    
-                                                    <div
-                                                        className={classes.extraAttr}
-                                                        key={`${index}-info`}
-                                                    >
-                                                        <Grid container  spacing={0}>
-                                                            <Grid xs={6} md={10} item> 
+                                                values.options.map((info, index) => (
+                                                    <ExtraAttr key={`${index}-info`}>
+                                                        <Grid container spacing={0}>
+                                                            <Grid item xs={6} md={10}>
                                                                 <Field
-                                                                    as={TextField}
-                                                                    label={i18n.t("fileModal.form.extraName")}
-                                                                    name={`options[${index}].name`}
+                                                                    as={StyledTextField}
+                                                                    label={i18n.t("fileModal.form.fileName")}
+                                                                    name={`options.${index}.name`}
                                                                     variant="outlined"
                                                                     margin="dense"
-                                                                    multiline
                                                                     fullWidth
-                                                                    minRows={2}
-                                                                    className={classes.textField}
                                                                 />
-                                                            </Grid>     
-                                                            <Grid xs={2} md={2} item style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                                                <input
-                                                                    type="file"
-                                                                    onChange={(e) => {
-                                                                        const selectedFile = e.target.files[0];
-                                                                        const updatedOptions = [...values.options];                                                                
-                                                                        updatedOptions[index].file = selectedFile;
-                                                                       
-                                                                        setFiles('options', updatedOptions);
-
-                                                                        // Atualize a lista selectedFileNames para o campo específico
-                                                                        const updatedFileNames = [...selectedFileNames];
-                                                                        updatedFileNames[index] = selectedFile ? selectedFile.name : '';
-                                                                        setSelectedFileNames(updatedFileNames);
-                                                                    }}
-                                                                    style={{ display: 'none' }}
-                                                                    name={`options[${index}].file`}
-                                                                    id={`file-upload-${index}`}
-                                                                />
-                                                                <label htmlFor={`file-upload-${index}`}>
-                                                                    <IconButton component="span">
-                                                                        <AttachFileIcon />
-                                                                    </IconButton>
-                                                                </label>
-                                                                <IconButton
-                                                                    size="small"
-                                                                    onClick={() => remove(index)}
-                                                                >
-                                                                    <DeleteOutlineIcon />
-                                                                </IconButton>    
                                                             </Grid>
-                                                            <Grid xs={12} md={12} item>
-                                                                {info.path? info.path : selectedFileNames[index]}                               
-                                                            </Grid> 
-                                                        </Grid>                                                    
-                                                </div>                     
-                                                                                           
+                                                            <Grid item xs={6} md={2}>
+                                                                <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+                                                                    <input
+                                                                        type="file"
+                                                                        id={`file-${index}`}
+                                                                        style={{ display: "none" }}
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files[0];
+                                                                            if (file) {
+                                                                                values.options[index].file = file;
+                                                                                values.options[index].mediaType = file.type;
+                                                                                setSelectedFileNames(prev => {
+                                                                                    const newNames = [...prev];
+                                                                                    newNames[index] = file.name;
+                                                                                    return newNames;
+                                                                                });
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    <label htmlFor={`file-${index}`}>
+                                                                        <IconButton
+                                                                            component="span"
+                                                                            color="primary"
+                                                                        >
+                                                                            <AttachFileIcon />
+                                                                        </IconButton>
+                                                                    </label>
+                                                                    {selectedFileNames[index] && (
+                                                                        <Typography variant="body2" sx={{ ml: 1 }}>
+                                                                            {selectedFileNames[index]}
+                                                                        </Typography>
+                                                                    )}
+                                                                    <IconButton
+                                                                        onClick={() => {
+                                                                            remove(index);
+                                                                            setSelectedFileNames(prev => {
+                                                                                const newNames = [...prev];
+                                                                                newNames.splice(index, 1);
+                                                                                return newNames;
+                                                                            });
+                                                                        }}
+                                                                        color="secondary"
+                                                                    >
+                                                                        <DeleteOutlineIcon />
+                                                                    </IconButton>
+                                                                </Box>
+                                                            </Grid>
+                                                        </Grid>
+                                                    </ExtraAttr>
                                                 ))}
-                                            <div className={classes.extraAttr}>
+                                            <Box sx={{ mt: 2 }}>
                                                 <Button
-                                                    style={{ flex: 1, marginTop: 8 }}
                                                     variant="outlined"
                                                     color="primary"
-                                                    onClick={() => {push({ name: "", path: ""});
-                                                    setSelectedFileNames([...selectedFileNames, ""]);
-                                                }}
+                                                    onClick={() => {
+                                                        push({ name: "", path: "", mediaType: "" });
+                                                        setSelectedFileNames(prev => [...prev, ""]);
+                                                    }}
                                                 >
-                                                    {`+ ${i18n.t("fileModal.buttons.fileOptions")}`}
+                                                    {i18n.t("fileModal.buttons.addFile")}
                                                 </Button>
-                                            </div>
+                                            </Box>
                                         </>
                                     )}
                                 </FieldArray>
                             </DialogContent>
                             <DialogActions>
-                                <Button
-                                    onClick={handleClose}
-                                    color="secondary"
-                                    disabled={isSubmitting}
-                                    variant="outlined"
-                                >
+                                <Button onClick={handleClose} color="secondary">
                                     {i18n.t("fileModal.buttons.cancel")}
                                 </Button>
-                                <Button
-                                    type="submit"
-                                    color="primary"
-                                    disabled={isSubmitting}
-                                    variant="contained"
-                                    className={classes.btnWrapper}
-                                >
-                                    {fileListId
-                                        ? `${i18n.t("fileModal.buttons.okEdit")}`
-                                        : `${i18n.t("fileModal.buttons.okAdd")}`}
-                                    {isSubmitting && (
-                                        <CircularProgress
-                                            size={24}
-                                            className={classes.buttonProgress}
-                                        />
-                                    )}
-                                </Button>
+                                <ButtonWrapper>
+                                    <Button
+                                        type="submit"
+                                        color="primary"
+                                        variant="contained"
+                                        disabled={isSubmitting}
+                                    >
+                                        {i18n.t("fileModal.buttons.ok")}
+                                    </Button>
+                                    {isSubmitting && <ButtonProgress size={24} />}
+                                </ButtonWrapper>
                             </DialogActions>
                         </Form>
                     )}
                 </Formik>
             </Dialog>
-        </div>
+        </Root>
     );
 };
 

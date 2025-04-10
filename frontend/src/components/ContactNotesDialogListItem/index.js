@@ -1,25 +1,24 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import IconButton from '@material-ui/core/IconButton';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import Avatar from '@material-ui/core/Avatar';
-import Typography from '@material-ui/core/Typography';
-import { makeStyles } from '@material-ui/core/styles';
-import DeleteIcon from '@material-ui/icons/Delete';
+import { styled } from '@mui/material/styles';
+import { 
+    IconButton,
+    ListItem,
+    ListItemText,
+    ListItemAvatar,
+    ListItemSecondaryAction,
+    Avatar,
+    Typography
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import moment from 'moment';
 
-const useStyles = makeStyles((theme) => ({
-    inline: {
-        width: '100%'
-    }
-}));
+const StyledTypography = styled(Typography)({
+    width: '100%'
+});
 
-export default function ContactNotesDialogListItem (props) {
+export default function ContactNotesDialogListItem(props) {
     const { note, deleteItem } = props;
-    const classes = useStyles();
 
     const handleDelete = (item) => {
         deleteItem(item);
@@ -32,16 +31,13 @@ export default function ContactNotesDialogListItem (props) {
             </ListItemAvatar>
             <ListItemText
                 primary={
-                    <>
-                        <Typography
-                            component="span"
-                            variant="body2"
-                            className={classes.inline}
-                            color="textPrimary"
-                        >
-                            {note.note}
-                        </Typography>
-                    </>
+                    <StyledTypography
+                        component="span"
+                        variant="body2"
+                        color="textPrimary"
+                    >
+                        {note.note}
+                    </StyledTypography>
                 }
                 secondary={
                     <>

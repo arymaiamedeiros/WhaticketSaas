@@ -1,66 +1,61 @@
 import React, { useState, useEffect, useContext } from "react";
-
+import { styled } from '@mui/material/styles';
 import * as Yup from "yup";
 import { Formik, Form, Field } from "formik";
 import { toast } from "react-toastify";
-
-import { makeStyles } from "@material-ui/core/styles";
-import { green } from "@material-ui/core/colors";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import { Colorize } from "@material-ui/icons";
+import {
+	Button,
+	TextField,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	CircularProgress,
+	IconButton,
+	InputAdornment,
+	FormControlLabel,
+	Switch,
+	Checkbox,
+	Box
+} from "@mui/material";
+import { Colorize } from "@mui/icons-material";
 import { ColorBox } from 'material-ui-color';
+import { green } from "@mui/material/colors";
 
 import { i18n } from "../../translate/i18n";
-
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
-import { IconButton, InputAdornment } from "@material-ui/core";
-import { FormControlLabel, Switch } from '@material-ui/core';
-import Select from "@material-ui/core/Select";
-import MenuItem from "@material-ui/core/MenuItem";
-import InputLabel from "@material-ui/core/InputLabel";
-import Checkbox from '@material-ui/core/Checkbox';
 
-const useStyles = makeStyles(theme => ({
-	root: {
-		display: "flex",
-		flexWrap: "wrap",
-	},
-	multFieldLine: {
-		display: "flex",
-		"& > *:not(:last-child)": {
-			marginRight: theme.spacing(1),
-		},
-	},
+const Root = styled('div')({
+	display: "flex",
+	flexWrap: "wrap",
+});
 
-	btnWrapper: {
-		position: "relative",
-	},
-
-	buttonProgress: {
-		color: green[500],
-		position: "absolute",
-		top: "50%",
-		left: "50%",
-		marginTop: -12,
-		marginLeft: -12,
-	},
-	formControl: {
-		margin: theme.spacing(1),
-		minWidth: 120,
-	},
-	colorAdorment: {
-		width: 20,
-		height: 20,
+const MultFieldLine = styled('div')(({ theme }) => ({
+	display: "flex",
+	"& > *:not(:last-child)": {
+		marginRight: theme.spacing(1),
 	},
 }));
+
+const ButtonWrapper = styled('div')({
+	position: "relative",
+});
+
+const ButtonProgress = styled(CircularProgress)({
+	color: green[500],
+	position: "absolute",
+	top: "50%",
+	left: "50%",
+	marginTop: -12,
+	marginLeft: -12,
+});
+
+const ColorAdornment = styled('div')({
+	width: 20,
+	height: 20,
+});
 
 const TagSchema = Yup.object().shape({
 	name: Yup.string()
@@ -69,7 +64,6 @@ const TagSchema = Yup.object().shape({
 });
 
 const TagModal = ({ open, onClose, tagId, reload }) => {
-	const classes = useStyles();
 	const { user } = useContext(AuthContext);
 	const [colorPickerModalOpen, setColorPickerModalOpen] = useState(false);
 
@@ -80,7 +74,7 @@ const TagModal = ({ open, onClose, tagId, reload }) => {
 	};
 
 	const [tag, setTag] = useState(initialState);
-	const [ kanban, setKanban] = useState(0);
+	const [kanban, setKanban] = useState(0);
 
 	useEffect(() => {
 		try {
@@ -105,7 +99,7 @@ const TagModal = ({ open, onClose, tagId, reload }) => {
 	};
 
 	const handleKanbanChange = (e) => {
-		setKanban( e.target.checked ? 1 : 0);
+		setKanban(e.target.checked ? 1 : 0);
 	};
 
 	const handleSaveTag = async values => {
@@ -127,7 +121,7 @@ const TagModal = ({ open, onClose, tagId, reload }) => {
 	};
 
 	return (
-		<div className={classes.root}>
+		<Root>
 			<Dialog
 				open={open}
 				onClose={handleClose}
@@ -152,7 +146,7 @@ const TagModal = ({ open, onClose, tagId, reload }) => {
 					{({ touched, errors, isSubmitting, values }) => (
 						<Form>
 							<DialogContent dividers>
-								<div className={classes.multFieldLine}>
+								<MultFieldLine>
 									<Field
 										as={TextField}
 										label={i18n.t("tagModal.form.name")}
@@ -164,9 +158,9 @@ const TagModal = ({ open, onClose, tagId, reload }) => {
 										onChange={(e) => setTag(prev => ({ ...prev, name: e.target.value }))}
 										fullWidth
 									/>
-								</div>
-								<br />
-								<div className={classes.multFieldLine}>
+								</MultFieldLine>
+								<Box sx={{ my: 2 }} />
+								<MultFieldLine>
 									<Field
 										as={TextField}
 										fullWidth
@@ -178,10 +172,9 @@ const TagModal = ({ open, onClose, tagId, reload }) => {
 										InputProps={{
 											startAdornment: (
 												<InputAdornment position="start">
-													<div
+													<ColorAdornment
 														style={{ backgroundColor: values.color }}
-														className={classes.colorAdorment}
-													></div>
+													/>
 												</InputAdornment>
 											),
 											endAdornment: (
@@ -197,28 +190,28 @@ const TagModal = ({ open, onClose, tagId, reload }) => {
 										variant="outlined"
 										margin="dense"
 									/>
-								</div>
+								</MultFieldLine>
 								{(user.profile === "admin" || user.profile === "supervisor") && (
-                                <>
-								<div className={classes.multFieldLine}>
-        							<FormControlLabel
-          								control={
-            								<Checkbox
-             									checked={kanban === 1}
-             									onChange={handleKanbanChange}
-              									value={kanban}
-              									color="primary"
-            								/>
-          								}
-          								label="Kanban"
-          								labelPlacement="start"
-        							/>
-      							</div>
-      							<br />
-                                </>
+									<>
+										<MultFieldLine>
+											<FormControlLabel
+												control={
+													<Checkbox
+														checked={kanban === 1}
+														onChange={handleKanbanChange}
+														value={kanban}
+														color="primary"
+													/>
+												}
+												label="Kanban"
+												labelPlacement="start"
+											/>
+										</MultFieldLine>
+										<Box sx={{ my: 2 }} />
+									</>
 								)}
 								{colorPickerModalOpen && (
-									<div>
+									<Box>
 										<ColorBox
 											disableAlpha={true}
 											hslGradient={false}
@@ -228,7 +221,7 @@ const TagModal = ({ open, onClose, tagId, reload }) => {
 												setTag(prev => ({ ...prev, color: `#${val.hex}` }));
 											}}
 										/>
-									</div>
+									</Box>
 								)}
 							</DialogContent>
 							<DialogActions>
@@ -240,29 +233,25 @@ const TagModal = ({ open, onClose, tagId, reload }) => {
 								>
 									{i18n.t("tagModal.buttons.cancel")}
 								</Button>
-								<Button
-									type="submit"
-									color="primary"
-									disabled={isSubmitting}
-									variant="contained"
-									className={classes.btnWrapper}
-								>
-									{tagId
-										? `${i18n.t("tagModal.buttons.okEdit")}`
-										: `${i18n.t("tagModal.buttons.okAdd")}`}
-									{isSubmitting && (
-										<CircularProgress
-											size={24}
-											className={classes.buttonProgress}
-										/>
-									)}
-								</Button>
+								<ButtonWrapper>
+									<Button
+										type="submit"
+										color="primary"
+										disabled={isSubmitting}
+										variant="contained"
+									>
+										{tagId
+											? `${i18n.t("tagModal.buttons.okEdit")}`
+											: `${i18n.t("tagModal.buttons.okAdd")}`}
+										{isSubmitting && <ButtonProgress size={24} />}
+									</Button>
+								</ButtonWrapper>
 							</DialogActions>
 						</Form>
 					)}
 				</Formik>
 			</Dialog>
-		</div>
+		</Root>
 	);
 };
 

@@ -1,12 +1,30 @@
-import { Chip, Paper, TextField } from "@material-ui/core";
-import Autocomplete from "@material-ui/lab/Autocomplete";
+import { Chip, Paper, TextField, Autocomplete } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import React, { useEffect, useRef, useState } from "react";
 import { isArray, isString } from "lodash";
 import toastError from "../../errors/toastError";
 import api from "../../services/api";
 
-export function TagsContainer({ ticket }) {
+const StyledPaper = styled(Paper)(({ theme }) => ({
+    padding: theme.spacing(1.5),
+}));
 
+const StyledChip = styled(Chip)(({ theme, background }) => ({
+    background: background || '#eee',
+    color: "#FFF",
+    marginRight: theme.spacing(0.125),
+    fontWeight: 600,
+    borderRadius: 3,
+    fontSize: "0.8em",
+    whiteSpace: "nowrap",
+}));
+
+const DropdownPaper = styled(Paper)(({ theme }) => ({
+    width: 400,
+    marginLeft: theme.spacing(1.5),
+}));
+
+export function TagsContainer({ ticket }) {
     const [tags, setTags] = useState([]);
     const [selecteds, setSelecteds] = useState([]);
     const isMounted = useRef(true);
@@ -78,7 +96,7 @@ export function TagsContainer({ ticket }) {
     }
 
     return (
-        <Paper style={{ padding: 12 }}>
+        <StyledPaper>
             <Autocomplete
                 multiple
                 size="small"
@@ -89,17 +107,9 @@ export function TagsContainer({ ticket }) {
                 getOptionLabel={(option) => option.name}
                 renderTags={(value, getTagProps) =>
                     value.map((option, index) => (
-                        <Chip
+                        <StyledChip
                             variant="outlined"
-                            style={{
-                                background: option.color || '#eee',
-                                color: "#FFF",
-                                marginRight: 1,
-                                fontWeight: 600,
-                                borderRadius: 3,
-                                fontSize: "0.8em",
-                                whiteSpace: "nowrap"
-                            }}
+                            background={option.color}
                             label={option.name.toUpperCase()}
                             {...getTagProps({ index })}
                             size="small"
@@ -110,11 +120,11 @@ export function TagsContainer({ ticket }) {
                     <TextField {...params} variant="outlined" placeholder="Tags" />
                 )}
                 PaperComponent={({ children }) => (
-                    <Paper style={{ width: 400, marginLeft: 12 }}>
+                    <DropdownPaper>
                         {children}
-                    </Paper>
+                    </DropdownPaper>
                 )}
             />
-        </Paper>
+        </StyledPaper>
     )
 }

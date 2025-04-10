@@ -1,59 +1,59 @@
 import React, { useState, useEffect } from "react";
-
 import * as Yup from "yup";
 import { Formik, Form, Field } from "formik";
 import { toast } from "react-toastify";
+import { styled } from '@mui/material/styles';
+import { green } from '@mui/material/colors';
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import CircularProgress from "@mui/material/CircularProgress";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Select from "@mui/material/Select";
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import Box from "@mui/material/Box";
 
-import { makeStyles } from "@material-ui/core/styles";
-import { green } from "@material-ui/core/colors";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import CircularProgress from "@material-ui/core/CircularProgress";
 import { i18n } from "../../translate/i18n";
-import { MenuItem, FormControl, InputLabel, Select } from "@material-ui/core";
-import { Visibility, VisibilityOff } from "@material-ui/icons";
-import { InputAdornment, IconButton } from "@material-ui/core";
 import QueueSelectSingle from "../../components/QueueSelectSingle";
-
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        display: "flex",
-        flexWrap: "wrap",
-    },
-    multFieldLine: {
-        display: "flex",
-        "& > *:not(:last-child)": {
-            marginRight: theme.spacing(1),
-        },
-    },
+const Root = styled('div')({
+    display: "flex",
+    flexWrap: "wrap",
+});
 
-    btnWrapper: {
-        position: "relative",
+const MultFieldLine = styled('div')(({ theme }) => ({
+    display: "flex",
+    "& > *:not(:last-child)": {
+        marginRight: theme.spacing(1),
     },
+}));
 
-    buttonProgress: {
-        color: green[500],
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        marginTop: -12,
-        marginLeft: -12,
-    },
-    formControl: {
-        margin: theme.spacing(1),
-        minWidth: 120,
-    },
-    colorAdorment: {
-        width: 20,
-        height: 20,
-    },
+const ButtonWrapper = styled('div')({
+    position: "relative",
+});
+
+const ButtonProgress = styled(CircularProgress)({
+    color: green[500],
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginTop: -12,
+    marginLeft: -12,
+});
+
+const StyledFormControl = styled(FormControl)(({ theme }) => ({
+    margin: theme.spacing(1),
+    minWidth: 120,
 }));
 
 const PromptSchema = Yup.object().shape({
@@ -68,7 +68,6 @@ const PromptSchema = Yup.object().shape({
 });
 
 const PromptModal = ({ open, onClose, promptId }) => {
-    const classes = useStyles();
     const [selectedVoice, setSelectedVoice] = useState("texto");
     const [showApiKey, setShowApiKey] = useState(false);
 
@@ -141,7 +140,7 @@ const PromptModal = ({ open, onClose, promptId }) => {
     };
 
     return (
-        <div className={classes.root}>
+        <Root>
             <Dialog
                 open={open}
                 onClose={handleClose}
@@ -177,7 +176,7 @@ const PromptModal = ({ open, onClose, promptId }) => {
                                     margin="dense"
                                     fullWidth
                                 />
-                                <FormControl fullWidth margin="dense" variant="outlined">
+                                <StyledFormControl fullWidth margin="dense" variant="outlined">
                                     <Field
                                         as={TextField}
                                         label={i18n.t("promptModal.form.apikey")}
@@ -198,7 +197,7 @@ const PromptModal = ({ open, onClose, promptId }) => {
                                             ),
                                         }}
                                     />
-                                </FormControl>
+                                </StyledFormControl>
                                 <Field
                                     as={TextField}
                                     label={i18n.t("promptModal.form.prompt")}
@@ -212,121 +211,28 @@ const PromptModal = ({ open, onClose, promptId }) => {
                                     multiline={true}
                                 />
                                 <QueueSelectSingle />
-                                <div className={classes.multFieldLine}>
-                                    <FormControl fullWidth margin="dense" variant="outlined">
-                                    <InputLabel>{i18n.t("promptModal.form.voice")}</InputLabel>
+                                <MultFieldLine>
+                                    <StyledFormControl fullWidth margin="dense" variant="outlined">
+                                        <InputLabel>{i18n.t("promptModal.form.voice")}</InputLabel>
                                         <Select
                                             id="type-select"
-                                            labelWidth={60}
+                                            label={i18n.t("promptModal.form.voice")}
                                             name="voice"
                                             value={selectedVoice}
                                             onChange={handleChangeVoice}
-                                            multiple={false}
                                         >
-                                            <MenuItem key={"texto"} value={"texto"}>
-                                                Texto
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-FranciscaNeural"} value={"pt-BR-FranciscaNeural"}>
-                                                Francisa
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-AntonioNeural"} value={"pt-BR-AntonioNeural"}>
-                                                Antônio
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-BrendaNeural"} value={"pt-BR-BrendaNeural"}>
-                                                Brenda
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-DonatoNeural"} value={"pt-BR-DonatoNeural"}>
-                                                Donato
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-ElzaNeural"} value={"pt-BR-ElzaNeural"}>
-                                                Elza
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-FabioNeural"} value={"pt-BR-FabioNeural"}>
-                                                Fábio
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-GiovannaNeural"} value={"pt-BR-GiovannaNeural"}>
-                                                Giovanna
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-HumbertoNeural"} value={"pt-BR-HumbertoNeural"}>
-                                                Humberto
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-JulioNeural"} value={"pt-BR-JulioNeural"}>
-                                                Julio
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-LeilaNeural"} value={"pt-BR-LeilaNeural"}>
-                                                Leila
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-LeticiaNeural"} value={"pt-BR-LeticiaNeural"}>
-                                                Letícia
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-ManuelaNeural"} value={"pt-BR-ManuelaNeural"}>
-                                                Manuela
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-NicolauNeural"} value={"pt-BR-NicolauNeural"}>
-                                                Nicolau
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-ValerioNeural"} value={"pt-BR-ValerioNeural"}>
-                                                Valério
-                                            </MenuItem>
-                                            <MenuItem key={"pt-BR-YaraNeural"} value={"pt-BR-YaraNeural"}>
-                                                Yara
-                                            </MenuItem>
+                                            <MenuItem value="texto">Texto</MenuItem>
+                                            <MenuItem value="pt-BR-FranciscaNeural">Francisa</MenuItem>
+                                            <MenuItem value="pt-BR-AntonioNeural">Antônio</MenuItem>
+                                            <MenuItem value="pt-BR-BrendaNeural">Brenda</MenuItem>
+                                            <MenuItem value="pt-BR-DonatoNeural">Donato</MenuItem>
+                                            <MenuItem value="pt-BR-ElzaNeural">Elza</MenuItem>
+                                            <MenuItem value="pt-BR-FabioNeural">Fábio</MenuItem>
+                                            <MenuItem value="pt-BR-GiovannaNeural">Giovanna</MenuItem>
+                                            <MenuItem value="pt-BR-HumbertoNeural">Humberto</MenuItem>
                                         </Select>
-                                    </FormControl>
-                                    <Field
-                                        as={TextField}
-                                        label={i18n.t("promptModal.form.voiceKey")}
-                                        name="voiceKey"
-                                        error={touched.voiceKey && Boolean(errors.voiceKey)}
-                                        helperText={touched.voiceKey && errors.voiceKey}
-                                        variant="outlined"
-                                        margin="dense"
-                                        fullWidth
-                                    />
-                                    <Field
-                                        as={TextField}
-                                        label={i18n.t("promptModal.form.voiceRegion")}
-                                        name="voiceRegion"
-                                        error={touched.voiceRegion && Boolean(errors.voiceRegion)}
-                                        helperText={touched.voiceRegion && errors.voiceRegion}
-                                        variant="outlined"
-                                        margin="dense"
-                                        fullWidth
-                                    />
-                                </div>
-                                
-                                <div className={classes.multFieldLine}>
-                                    <Field
-                                        as={TextField}
-                                        label={i18n.t("promptModal.form.temperature")}
-                                        name="temperature"
-                                        error={touched.temperature && Boolean(errors.temperature)}
-                                        helperText={touched.temperature && errors.temperature}
-                                        variant="outlined"
-                                        margin="dense"
-                                        fullWidth
-                                    />
-                                    <Field
-                                        as={TextField}
-                                        label={i18n.t("promptModal.form.max_tokens")}
-                                        name="maxTokens"
-                                        error={touched.maxTokens && Boolean(errors.maxTokens)}
-                                        helperText={touched.maxTokens && errors.maxTokens}
-                                        variant="outlined"
-                                        margin="dense"
-                                        fullWidth
-                                    />
-                                    <Field
-                                        as={TextField}
-                                        label={i18n.t("promptModal.form.max_messages")}
-                                        name="maxMessages"
-                                        error={touched.maxMessages && Boolean(errors.maxMessages)}
-                                        helperText={touched.maxMessages && errors.maxMessages}
-                                        variant="outlined"
-                                        margin="dense"
-                                        fullWidth
-                                    />
-                                </div>
+                                    </StyledFormControl>
+                                </MultFieldLine>
                             </DialogContent>
                             <DialogActions>
                                 <Button
@@ -337,29 +243,23 @@ const PromptModal = ({ open, onClose, promptId }) => {
                                 >
                                     {i18n.t("promptModal.buttons.cancel")}
                                 </Button>
-                                <Button
-                                    type="submit"
-                                    color="primary"
-                                    disabled={isSubmitting}
-                                    variant="contained"
-                                    className={classes.btnWrapper}
-                                >
-                                    {promptId
-                                        ? `${i18n.t("promptModal.buttons.okEdit")}`
-                                        : `${i18n.t("promptModal.buttons.okAdd")}`}
-                                    {isSubmitting && (
-                                        <CircularProgress
-                                            size={24}
-                                            className={classes.buttonProgress}
-                                        />
-                                    )}
-                                </Button>
+                                <ButtonWrapper>
+                                    <Button
+                                        type="submit"
+                                        color="primary"
+                                        disabled={isSubmitting}
+                                        variant="contained"
+                                    >
+                                        {i18n.t("promptModal.buttons.ok")}
+                                    </Button>
+                                    {isSubmitting && <ButtonProgress size={24} />}
+                                </ButtonWrapper>
                             </DialogActions>
                         </Form>
                     )}
                 </Formik>
             </Dialog>
-        </div>
+        </Root>
     );
 };
 

@@ -5,9 +5,7 @@ import n8n from "../../assets/n8n.png";
 import dialogflow from "../../assets/dialogflow.png";
 import webhooks from "../../assets/webhook.png";
 import typebot from "../../assets/typebot.jpg";
-
-import { makeStyles } from "@material-ui/core/styles";
-
+import { styled } from '@mui/material/styles';
 import {
   Avatar,
   Button,
@@ -21,14 +19,12 @@ import {
   TableRow,
   TextField,
   Tooltip
-} from "@material-ui/core";
-
+} from "@mui/material";
 import {
-  DeleteOutline,
-  Edit
-} from "@material-ui/icons";
-
-import SearchIcon from "@material-ui/icons/Search";
+  DeleteOutline as DeleteOutlineIcon,
+  Edit as EditIcon,
+  Search as SearchIcon
+} from "@mui/icons-material";
 
 import MainContainer from "../../components/MainContainer";
 import MainHeader from "../../components/MainHeader";
@@ -89,24 +85,21 @@ const reducer = (state, action) => {
   }
 };
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(2),
-    margin: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-  avatar: {
-    width: "140px",
-    height: "40px",
-    borderRadius: 4
-  },
+const MainPaper = styled(Paper)(({ theme }) => ({
+  flex: 1,
+  padding: theme.spacing(2),
+  margin: theme.spacing(1),
+  overflowY: "scroll",
+  ...theme.scrollbarStyles,
 }));
 
-const QueueIntegration = () => {
-  const classes = useStyles();
+const StyledAvatar = styled(Avatar)({
+  width: "140px",
+  height: "40px",
+  borderRadius: 4
+});
 
+const QueueIntegration = () => {
   const [loading, setLoading] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
   const [hasMore, setHasMore] = useState(false);
@@ -227,8 +220,7 @@ const QueueIntegration = () => {
       <ConfirmationModal
         title={
           deletingUser &&
-          `${i18n.t("queueIntegration.confirmationModal.deleteTitle")} ${deletingUser.name
-          }?`
+          `${i18n.t("queueIntegration.confirmationModal.deleteTitle")} ${deletingUser.name}?`
         }
         open={confirmModalOpen}
         onClose={setConfirmModalOpen}
@@ -239,8 +231,7 @@ const QueueIntegration = () => {
       <IntegrationModal
         open={userModalOpen}
         onClose={handleCloseIntegrationModal}
-        aria-labelledby="form-dialog-title"
-        integrationId={selectedIntegration && selectedIntegration.id}
+        integrationId={selectedIntegration?.id}
       />
       <MainHeader>
         <Title>{i18n.t("queueIntegration.title")} ({queueIntegration.length})</Title>
@@ -253,10 +244,11 @@ const QueueIntegration = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon color="secondary" />
+                  <SearchIcon style={{ color: "gray" }} />
                 </InputAdornment>
               ),
             }}
+            size="small"
           />
           <Button
             variant="contained"
@@ -267,61 +259,59 @@ const QueueIntegration = () => {
           </Button>
         </MainHeaderButtonsWrapper>
       </MainHeader>
-      <Paper
-        className={classes.mainPaper}
-        variant="outlined"
-        onScroll={handleScroll}
-      >
+      <MainPaper onScroll={handleScroll}>
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell padding="checkbox"></TableCell>
-              <TableCell align="center">{i18n.t("queueIntegration.table.id")}</TableCell>
-              <TableCell align="center">{i18n.t("queueIntegration.table.name")}</TableCell>
+              <TableCell padding="checkbox" />
+              <TableCell>{i18n.t("queueIntegration.table.name")}</TableCell>
+              <TableCell align="center">{i18n.t("queueIntegration.table.type")}</TableCell>
+              <TableCell align="center">{i18n.t("queueIntegration.table.actions")}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             <>
               {queueIntegration.map((integration) => (
                 <TableRow key={integration.id}>
-                  <TableCell >
-                    {integration.type === "dialogflow" && (<Avatar 
-                      src={dialogflow} className={classes.avatar} />)}
-                    {integration.type === "n8n" && (<Avatar
-                      src={n8n} className={classes.avatar} />)}
-                    {integration.type === "webhook" && (<Avatar
-                      src={webhooks} className={classes.avatar} />)}
-                    {integration.type === "typebot" && (<Avatar
-                      src={typebot} className={classes.avatar} />)}
+                  <TableCell padding="checkbox">
+                    <StyledAvatar
+                      src={
+                        integration.type === "n8n"
+                          ? n8n
+                          : integration.type === "dialogflow"
+                          ? dialogflow
+                          : integration.type === "webhook"
+                          ? webhooks
+                          : typebot
+                      }
+                    />
                   </TableCell>
-
-                  <TableCell align="center">{integration.id}</TableCell>
-                  <TableCell align="center">{integration.name}</TableCell>
+                  <TableCell>{integration.name}</TableCell>
+                  <TableCell align="center">{integration.type}</TableCell>
                   <TableCell align="center">
                     <IconButton
                       size="small"
                       onClick={() => handleEditIntegration(integration)}
                     >
-                      <Edit color="secondary" />
+                      <EditIcon />
                     </IconButton>
-
                     <IconButton
                       size="small"
-                      onClick={(e) => {
-                        setConfirmModalOpen(true);
+                      onClick={() => {
                         setDeletingUser(integration);
+                        setConfirmModalOpen(true);
                       }}
                     >
-                      <DeleteOutline color="secondary" />
+                      <DeleteOutlineIcon />
                     </IconButton>
                   </TableCell>
                 </TableRow>
               ))}
-              {loading && <TableRowSkeleton columns={7} />}
+              {loading && <TableRowSkeleton columns={4} />}
             </>
           </TableBody>
         </Table>
-      </Paper>
+      </MainPaper>
     </MainContainer>
   );
 };

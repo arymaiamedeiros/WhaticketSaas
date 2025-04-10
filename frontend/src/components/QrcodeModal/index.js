@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import QRCode from "qrcode.react";
 import toastError from "../../errors/toastError";
 
-import { Dialog, DialogContent, Paper, Typography } from "@material-ui/core";
+import { Dialog, DialogContent, Paper, Typography } from "@mui/material";
 import { i18n } from "../../translate/i18n";
 import api from "../../services/api";
 import { socketConnection } from "../../services/socket";

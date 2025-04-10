@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Typography from "@material-ui/core/Typography";
-import Container from "@material-ui/core/Container";
-import Select from "@material-ui/core/Select";
+import { makeStyles } from "@mui/material/styles";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import Container from "@mui/material/Container";
+import Select from "@mui/material/Select";
 import { toast } from "react-toastify";
 
 import api from "../../services/api";

@@ -1,25 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
-
+import { styled } from '@mui/material/styles';
 import * as Yup from "yup";
 import { Formik, Form, Field } from "formik";
 import { toast } from "react-toastify";
 
-import { makeStyles } from "@material-ui/core/styles";
-import { green } from "@material-ui/core/colors";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import CircularProgress from "@material-ui/core/CircularProgress";
-
-import { i18n } from "../../translate/i18n";
-
-import api from "../../services/api";
-import toastError from "../../errors/toastError";
-import ColorPicker from "../ColorPicker";
+import { green } from '@mui/material/colors';
 import {
+  Button,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  CircularProgress,
   FormControl,
   Grid,
   IconButton,
@@ -30,42 +23,48 @@ import {
   Select,
   Tab,
   Tabs,
-} from "@material-ui/core";
-import { Colorize } from "@material-ui/icons";
+} from "@mui/material";
+import { Colorize } from "@mui/icons-material";
+
+import { i18n } from "../../translate/i18n";
+import api from "../../services/api";
+import toastError from "../../errors/toastError";
+import ColorPicker from "../ColorPicker";
 import { QueueOptions } from "../QueueOptions";
 import SchedulesForm from "../SchedulesForm";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    display: "flex",
-    flexWrap: "wrap",
-  },
-  textField: {
-    marginRight: theme.spacing(1),
-    flex: 1,
-  },
+const Root = styled('div')({
+  display: "flex",
+  flexWrap: "wrap",
+});
 
-  btnWrapper: {
-    position: "relative",
-  },
+const StyledTextField = styled(TextField)({
+  marginRight: 8,
+  flex: 1,
+});
 
-  buttonProgress: {
-    color: green[500],
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    marginTop: -12,
-    marginLeft: -12,
-  },
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 120,
-  },
-  colorAdorment: {
-    width: 20,
-    height: 20,
-  },
-}));
+const ButtonWrapper = styled('div')({
+  position: "relative",
+});
+
+const ButtonProgress = styled(CircularProgress)({
+  color: green[500],
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  marginTop: -12,
+  marginLeft: -12,
+});
+
+const StyledFormControl = styled(FormControl)({
+  margin: 8,
+  minWidth: 120,
+});
+
+const ColorAdornment = styled('div')({
+  width: 20,
+  height: 20,
+});
 
 const QueueSchema = Yup.object().shape({
   name: Yup.string()
@@ -77,8 +76,6 @@ const QueueSchema = Yup.object().shape({
 });
 
 const QueueModal = ({ open, onClose, queueId }) => {
-  const classes = useStyles();
-
   const initialState = {
     name: "",
     color: "",
@@ -134,7 +131,6 @@ const QueueModal = ({ open, onClose, queueId }) => {
     (async () => {
       try {
         const { data } = await api.get("/queueIntegration");
-
         setIntegrations(data.queueIntegrations);
       } catch (err) {
         toastError(err);
@@ -151,7 +147,6 @@ const QueueModal = ({ open, onClose, queueId }) => {
           return { ...prevState, ...data };
         });
         data.promptId ? setSelectedPrompt(data.promptId) : setSelectedPrompt(null);
-
         setSchedules(data.schedules);
       } catch (err) {
         toastError(err);
@@ -204,7 +199,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
   };
 
   return (
-    <div className={classes.root}>
+    <Root>
       <Dialog
         maxWidth="md"
         fullWidth={true}
@@ -244,7 +239,7 @@ const QueueModal = ({ open, onClose, queueId }) => {
                 <Form>
                   <DialogContent dividers>
                     <Field
-                      as={TextField}
+                      as={StyledTextField}
                       label={i18n.t("queueModal.form.name")}
                       autoFocus
                       name="name"
@@ -252,200 +247,158 @@ const QueueModal = ({ open, onClose, queueId }) => {
                       helperText={touched.name && errors.name}
                       variant="outlined"
                       margin="dense"
-                      className={classes.textField}
+                      fullWidth
                     />
                     <Field
-                      as={TextField}
+                      as={StyledTextField}
                       label={i18n.t("queueModal.form.color")}
                       name="color"
                       id="color"
-                      onFocus={() => {
-                        setColorPickerModalOpen(true);
-                        greetingRef.current.focus();
-                      }}
-                      error={touched.color && Boolean(errors.color)}
-                      helperText={touched.color && errors.color}
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <div
+                            <ColorAdornment
                               style={{ backgroundColor: values.color }}
-                              className={classes.colorAdorment}
-                            ></div>
+                            />
                           </InputAdornment>
                         ),
                         endAdornment: (
-                          <IconButton
-                            size="small"
-                            color="default"
-                            onClick={() => setColorPickerModalOpen(true)}
-                          >
-                            <Colorize />
-                          </IconButton>
+                          <InputAdornment position="end">
+                            <IconButton
+                              size="small"
+                              onClick={() => setColorPickerModalOpen(true)}
+                            >
+                              <Colorize />
+                            </IconButton>
+                          </InputAdornment>
                         ),
                       }}
                       variant="outlined"
                       margin="dense"
-                      className={classes.textField}
-                    />
-                    <ColorPicker
-                      open={colorPickerModalOpen}
-                      handleClose={() => setColorPickerModalOpen(false)}
-                      onChange={(color) => {
-                        values.color = color;
-                        setQueue(() => {
-                          return { ...values, color };
-                        });
-                      }}
                     />
                     <Field
-                      as={TextField}
-                      label={i18n.t("queueModal.form.orderQueue")}
-                      name="orderQueue"
-                      type="orderQueue"
-                      error={touched.orderQueue && Boolean(errors.orderQueue)}
-                      helperText={touched.orderQueue && errors.orderQueue}
+                      as={StyledTextField}
+                      label={i18n.t("queueModal.form.greetingMessage")}
+                      name="greetingMessage"
+                      multiline
+                      rows={4}
                       variant="outlined"
                       margin="dense"
-                      className={classes.textField1}
+                      fullWidth
+                      inputRef={greetingRef}
                     />
-                    <div>
-                      <FormControl
-                        variant="outlined"
-                        margin="dense"
-                        className={classes.FormControl}
-                        fullWidth
-                      >
-                        <InputLabel id="integrationId-selection-label">
-                          {i18n.t("queueModal.form.integrationId")}
-                        </InputLabel>
+                    <Field
+                      as={StyledTextField}
+                      label={i18n.t("queueModal.form.outOfHoursMessage")}
+                      name="outOfHoursMessage"
+                      multiline
+                      rows={4}
+                      variant="outlined"
+                      margin="dense"
+                      fullWidth
+                    />
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
                         <Field
-                          as={Select}
-                          label={i18n.t("queueModal.form.integrationId")}
-                          name="integrationId"
-                          id="integrationId"
-                          placeholder={i18n.t("queueModal.form.integrationId")}
-                          labelId="integrationId-selection-label"
-                          value={values.integrationId || ""}
-                        >
-                          <MenuItem value={""} >{"Nenhum"}</MenuItem>
-                          {integrations.map((integration) => (
-                            <MenuItem key={integration.id} value={integration.id}>
-                              {integration.name}
-                            </MenuItem>
-                          ))}
-                        </Field>
-
-                      </FormControl>
-                      <FormControl
-                        margin="dense"
-                        variant="outlined"
-                        fullWidth
-                      >
-                        <InputLabel>
-                          {i18n.t("whatsappModal.form.prompt")}
-                        </InputLabel>
-                        <Select
-                          labelId="dialog-select-prompt-label"
-                          id="dialog-select-prompt"
-                          name="promptId"
-                          value={selectedPrompt || ""}
-                          onChange={handleChangePrompt}
-                          label={i18n.t("whatsappModal.form.prompt")}
-                          fullWidth
-                          MenuProps={{
-                            anchorOrigin: {
-                              vertical: "bottom",
-                              horizontal: "left",
-                            },
-                            transformOrigin: {
-                              vertical: "top",
-                              horizontal: "left",
-                            },
-                            getContentAnchorEl: null,
-                          }}
-                        >
-                          {prompts.map((prompt) => (
-                            <MenuItem
-                              key={prompt.id}
-                              value={prompt.id}
-                            >
-                              {prompt.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </div>
-                    <div style={{ marginTop: 5 }}>
-                      <Field
-                        as={TextField}
-                        label={i18n.t("queueModal.form.greetingMessage")}
-                        type="greetingMessage"
-                        multiline
-                        inputRef={greetingRef}
-                        rows={5}
-                        fullWidth
-                        name="greetingMessage"
-                        error={
-                          touched.greetingMessage &&
-                          Boolean(errors.greetingMessage)
-                        }
-                        helperText={
-                          touched.greetingMessage && errors.greetingMessage
-                        }
-                        variant="outlined"
-                        margin="dense"
-                      />
-                      {schedulesEnabled && (
-                        <Field
-                          as={TextField}
-                          label={i18n.t("queueModal.form.outOfHoursMessage")}
-                          type="outOfHoursMessage"
-                          multiline
-                          inputRef={greetingRef}
-                          rows={5}
-                          fullWidth
-                          name="outOfHoursMessage"
-                          error={
-                            touched.outOfHoursMessage &&
-                            Boolean(errors.outOfHoursMessage)
-                          }
-                          helperText={
-                            touched.outOfHoursMessage && errors.outOfHoursMessage
-                          }
+                          as={StyledFormControl}
                           variant="outlined"
                           margin="dense"
-                        />
-                      )}
-                    </div>
-                    <QueueOptions queueId={queueId} />
+                          fullWidth
+                        >
+                          <InputLabel>
+                            {i18n.t("queueModal.form.orderQueue")}
+                          </InputLabel>
+                          <Select
+                            name="orderQueue"
+                            label={i18n.t("queueModal.form.orderQueue")}
+                            value={values.orderQueue}
+                          >
+                            <MenuItem value={0}>
+                              {i18n.t("queueModal.form.orderQueueOptions.0")}
+                            </MenuItem>
+                            <MenuItem value={1}>
+                              {i18n.t("queueModal.form.orderQueueOptions.1")}
+                            </MenuItem>
+                            <MenuItem value={2}>
+                              {i18n.t("queueModal.form.orderQueueOptions.2")}
+                            </MenuItem>
+                          </Select>
+                        </Field>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Field
+                          as={StyledFormControl}
+                          variant="outlined"
+                          margin="dense"
+                          fullWidth
+                        >
+                          <InputLabel>
+                            {i18n.t("queueModal.form.integration")}
+                          </InputLabel>
+                          <Select
+                            name="integrationId"
+                            label={i18n.t("queueModal.form.integration")}
+                            value={values.integrationId}
+                          >
+                            <MenuItem value={""}>
+                              {i18n.t("queueModal.form.integrationOptions.0")}
+                            </MenuItem>
+                            {integrations.map((integration) => (
+                              <MenuItem
+                                key={integration.id}
+                                value={integration.id}
+                              >
+                                {integration.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </Field>
+                      </Grid>
+                    </Grid>
+                    <Field
+                      as={StyledFormControl}
+                      variant="outlined"
+                      margin="dense"
+                      fullWidth
+                    >
+                      <InputLabel>
+                        {i18n.t("queueModal.form.prompt")}
+                      </InputLabel>
+                      <Select
+                        name="promptId"
+                        label={i18n.t("queueModal.form.prompt")}
+                        value={selectedPrompt}
+                        onChange={handleChangePrompt}
+                      >
+                        <MenuItem value={null}>
+                          {i18n.t("queueModal.form.promptOptions.0")}
+                        </MenuItem>
+                        {prompts.map((prompt) => (
+                          <MenuItem
+                            key={prompt.id}
+                            value={prompt.id}
+                          >
+                            {prompt.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </Field>
                   </DialogContent>
                   <DialogActions>
-                    <Button
-                      onClick={handleClose}
-                      color="secondary"
-                      disabled={isSubmitting}
-                      variant="outlined"
-                    >
+                    <Button onClick={handleClose} color="secondary">
                       {i18n.t("queueModal.buttons.cancel")}
                     </Button>
-                    <Button
-                      type="submit"
-                      color="primary"
-                      disabled={isSubmitting}
-                      variant="contained"
-                      className={classes.btnWrapper}
-                    >
-                      {queueId
-                        ? `${i18n.t("queueModal.buttons.okEdit")}`
-                        : `${i18n.t("queueModal.buttons.okAdd")}`}
-                      {isSubmitting && (
-                        <CircularProgress
-                          size={24}
-                          className={classes.buttonProgress}
-                        />
-                      )}
-                    </Button>
+                    <ButtonWrapper>
+                      <Button
+                        type="submit"
+                        color="primary"
+                        variant="contained"
+                        disabled={isSubmitting}
+                      >
+                        {i18n.t("queueModal.buttons.ok")}
+                      </Button>
+                      {isSubmitting && <ButtonProgress size={24} />}
+                    </ButtonWrapper>
                   </DialogActions>
                 </Form>
               )}
@@ -453,17 +406,21 @@ const QueueModal = ({ open, onClose, queueId }) => {
           </Paper>
         )}
         {tab === 1 && (
-          <Paper style={{ padding: 20 }}>
-            <SchedulesForm
-              loading={false}
-              onSubmit={handleSaveSchedules}
-              initialValues={schedules}
-              labelSaveButton="Adicionar"
-            />
-          </Paper>
+          <SchedulesForm
+            schedules={schedules}
+            handleSaveSchedules={handleSaveSchedules}
+          />
         )}
+        <ColorPicker
+          modalOpen={colorPickerModalOpen}
+          onChange={(color) => {
+            setQueue((prev) => ({ ...prev, color }));
+            setColorPickerModalOpen(false);
+          }}
+          onClose={() => setColorPickerModalOpen(false)}
+        />
       </Dialog>
-    </div>
+    </Root>
   );
 };
 

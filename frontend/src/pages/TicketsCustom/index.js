@@ -1,8 +1,8 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import Grid from "@material-ui/core/Grid";
-import Paper from "@material-ui/core/Paper";
-import { makeStyles } from "@material-ui/core/styles";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import { makeStyles } from "@mui/material/styles";
 
 import TicketsManager from "../../components/TicketsManagerTabs/";
 import Ticket from "../../components/Ticket/";

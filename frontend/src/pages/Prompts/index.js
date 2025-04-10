@@ -1,7 +1,6 @@
 import React, { useEffect, useReducer, useState } from "react";
-
+import { styled } from '@mui/material/styles';
 import openSocket from "socket.io-client";
-
 import {
   Button,
   IconButton,
@@ -11,9 +10,9 @@ import {
   TableCell,
   TableHead,
   TableRow
-} from "@material-ui/core";
-
-import { makeStyles } from "@material-ui/core/styles";
+} from "@mui/material";
+import { DeleteOutline as DeleteOutlineIcon, Edit as EditIcon } from "@mui/icons-material";
+import { toast } from "react-toastify";
 
 import MainContainer from "../../components/MainContainer";
 import MainHeader from "../../components/MainHeader";
@@ -23,24 +22,21 @@ import Title from "../../components/Title";
 import { i18n } from "../../translate/i18n";
 import toastError from "../../errors/toastError";
 import api from "../../services/api";
-import { DeleteOutline, Edit } from "@material-ui/icons";
 import PromptModal from "../../components/PromptModal";
-import { toast } from "react-toastify";
 import ConfirmationModal from "../../components/ConfirmationModal";
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-  customTableCell: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+const MainPaper = styled(Paper)(({ theme }) => ({
+  flex: 1,
+  padding: theme.spacing(1),
+  overflowY: "scroll",
+  ...theme.scrollbarStyles,
 }));
+
+const StyledTableCell = styled(TableCell)({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+});
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_PROMPTS") {
@@ -86,11 +82,8 @@ const reducer = (state, action) => {
 };
 
 const Prompts = () => {
-  const classes = useStyles();
-
   const [prompts, dispatch] = useReducer(reducer, []);
   const [loading, setLoading] = useState(false);
-
   const [promptModalOpen, setPromptModalOpen] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
@@ -101,7 +94,6 @@ const Prompts = () => {
       try {
         const { data } = await api.get("/prompt");
         dispatch({ type: "LOAD_PROMPTS", payload: data.prompts });
-
         setLoading(false);
       } catch (err) {
         toastError(err);
@@ -163,8 +155,7 @@ const Prompts = () => {
       <ConfirmationModal
         title={
           selectedPrompt &&
-          `${i18n.t("prompts.confirmationModal.deleteTitle")} ${selectedPrompt.name
-          }?`
+          `${i18n.t("prompts.confirmationModal.deleteTitle")} ${selectedPrompt.name}?`
         }
         open={confirmModalOpen}
         onClose={handleCloseConfirmationModal}
@@ -189,7 +180,7 @@ const Prompts = () => {
           </Button>
         </MainHeaderButtonsWrapper>
       </MainHeader>
-      <Paper className={classes.mainPaper} variant="outlined">
+      <MainPaper variant="outlined">
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -201,7 +192,7 @@ const Prompts = () => {
               </TableCell>
               <TableCell align="left">
                 {i18n.t("prompts.table.max_tokens")}
-              </TableCell> 
+              </TableCell>
               <TableCell align="center">
                 {i18n.t("prompts.table.actions")}
               </TableCell>
@@ -219,9 +210,8 @@ const Prompts = () => {
                       size="small"
                       onClick={() => handleEditPrompt(prompt)}
                     >
-                      <Edit />
+                      <EditIcon />
                     </IconButton>
-
                     <IconButton
                       size="small"
                       onClick={() => {
@@ -229,7 +219,7 @@ const Prompts = () => {
                         setConfirmModalOpen(true);
                       }}
                     >
-                      <DeleteOutline />
+                      <DeleteOutlineIcon />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -238,7 +228,7 @@ const Prompts = () => {
             </>
           </TableBody>
         </Table>
-      </Paper>
+      </MainPaper>
     </MainContainer>
   );
 };

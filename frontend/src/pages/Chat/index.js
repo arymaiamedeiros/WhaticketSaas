@@ -1,59 +1,71 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-
-import { useParams, useHistory } from "react-router-dom";
-
+import { styled } from '@mui/material/styles';
 import {
+  Box,
+  Grid,
+  Paper,
+  Hidden,
+  Typography,
+  CircularProgress,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Grid,
-  makeStyles,
-  Paper,
   Tab,
   Tabs,
   TextField,
-} from "@material-ui/core";
+  useMediaQuery,
+  useTheme
+} from "@mui/material";
+import { useParams, useHistory } from "react-router-dom";
 import ChatList from "./ChatList";
 import ChatMessages from "./ChatMessages";
 import { UsersFilter } from "../../components/UsersFilter";
 import api from "../../services/api";
 import { socketConnection } from "../../services/socket";
-
 import { has, isObject } from "lodash";
-
 import { AuthContext } from "../../context/Auth/AuthContext";
-import withWidth, { isWidthUp } from "@material-ui/core/withWidth";
+import { i18n } from "../../translate/i18n";
+import { useDate } from "../../hooks/useDate";
+import toastError from "../../errors/toastError";
 
-const useStyles = makeStyles((theme) => ({
-  mainContainer: {
-    display: "flex",
-    flexDirection: "column",
-    position: "relative",
-    flex: 1,
-    padding: theme.spacing(2),
-    height: `calc(100% - 48px)`,
-    overflowY: "hidden",
-    border: "1px solid rgba(0, 0, 0, 0.12)",
-  },
-  gridContainer: {
-    flex: 1,
-    height: "100%",
-    border: "1px solid rgba(0, 0, 0, 0.12)",
-    backgroundColor: theme.palette.dark,
-  },
-  gridItem: {
-    height: "100%",
-  },
-  gridItemTab: {
-    height: "92%",
-    width: "100%",
-  },
-  btnContainer: {
-    textAlign: "right",
-    padding: 10,
-  },
+const MainContainer = styled(Box)(({ theme }) => ({
+  flex: 1,
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  overflow: "hidden",
+}));
+
+const MessagesContainer = styled(Box)(({ theme }) => ({
+  flex: 1,
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  overflow: "hidden",
+}));
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+  background: theme.palette.background.default,
+  display: "flex",
+  height: "100%",
+}));
+
+const ChatContainer = styled(Box)(({ theme }) => ({
+  display: "flex",
+  height: "100%",
+  width: "100%",
+  position: "relative",
+  overflow: "hidden",
+}));
+
+const LoadingContainer = styled(Box)(({ theme }) => ({
+  display: "flex",
+  height: "100%",
+  width: "100%",
+  alignItems: "center",
+  justifyContent: "center",
 }));
 
 export function ChatModal({
@@ -149,305 +161,139 @@ export function ChatModal({
 }
 
 function Chat(props) {
-  const classes = useStyles();
-  const { user } = useContext(AuthContext);
   const history = useHistory();
+  const { user } = useContext(AuthContext);
+  const date = useDate();
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
-  const [showDialog, setShowDialog] = useState(false);
-  const [dialogType, setDialogType] = useState("new");
-  const [currentChat, setCurrentChat] = useState({});
-  const [chats, setChats] = useState([]);
-  const [chatsPageInfo, setChatsPageInfo] = useState({ hasMore: false });
-  const [messages, setMessages] = useState([]);
-  const [messagesPageInfo, setMessagesPageInfo] = useState({ hasMore: false });
-  const [messagesPage, setMessagesPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState(0);
-  const isMounted = useRef(true);
-  const scrollToBottomRef = useRef();
-  const { id } = useParams();
-
-  useEffect(() => {
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
+  const [showMessagesGrid, setShowMessagesGrid] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [searchParam, setSearchParam] = useState("");
+  const [tab, setTab] = useState("open");
+  const [contacts, setContacts] = useState([]);
+  const [contactId, setContactId] = useState("");
+  const [selectedContact, setSelectedContact] = useState({});
+  const [contactsPage, setContactsPage] = useState(1);
 
   useEffect(() => {
-    if (isMounted.current) {
-      findChats().then((data) => {
-        const { records } = data;
-        if (records.length > 0) {
-          setChats(records);
-          setChatsPageInfo(data);
-
-          if (id && records.length) {
-            const chat = records.find((r) => r.uuid === id);
-            selectChat(chat);
-          }
-        }
-      });
+    if (user && user.profile && user.profile !== "admin") {
+      const companyId = localStorage.getItem("companyId");
+      if (companyId && user.companyId !== companyId) {
+        localStorage.removeItem("companyId");
+        history.push("/");
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    if (isObject(currentChat) && has(currentChat, "id")) {
-      findMessages(currentChat.id).then(() => {
-        if (typeof scrollToBottomRef.current === "function") {
-          setTimeout(() => {
-            scrollToBottomRef.current();
-          }, 300);
-        }
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentChat]);
-
-  useEffect(() => {
-    const companyId = localStorage.getItem("companyId");
-    const socket = socketConnection({ companyId });
-
-    socket.on(`company-${companyId}-chat-user-${user.id}`, (data) => {
-      if (data.action === "create") {
-        setChats((prev) => [data.record, ...prev]);
-      }
-      if (data.action === "update") {
-        const changedChats = chats.map((chat) => {
-          if (chat.id === data.record.id) {
-            setCurrentChat(data.record);
-            return {
-              ...data.record,
-            };
-          }
-          return chat;
-        });
-        setChats(changedChats);
-      }
-    });
-
-    socket.on(`company-${companyId}-chat`, (data) => {
-      if (data.action === "delete") {
-        const filteredChats = chats.filter((c) => c.id !== +data.id);
-        setChats(filteredChats);
-        setMessages([]);
-        setMessagesPage(1);
-        setMessagesPageInfo({ hasMore: false });
-        setCurrentChat({});
-        history.push("/chats");
-      }
-    });
-
-    if (isObject(currentChat) && has(currentChat, "id")) {
-      socket.on(`company-${companyId}-chat-${currentChat.id}`, (data) => {
-        if (data.action === "new-message") {
-          setMessages((prev) => [...prev, data.newMessage]);
-          const changedChats = chats.map((chat) => {
-            if (chat.id === data.newMessage.chatId) {
-              return {
-                ...data.chat,
-              };
-            }
-            return chat;
-          });
-          setChats(changedChats);
-          scrollToBottomRef.current();
-        }
-
-        if (data.action === "update") {
-          const changedChats = chats.map((chat) => {
-            if (chat.id === data.chat.id) {
-              return {
-                ...data.chat,
-              };
-            }
-            return chat;
-          });
-          setChats(changedChats);
-          scrollToBottomRef.current();
-        }
-      });
-    }
-
-    return () => {
-      socket.disconnect();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentChat]);
-
-  const selectChat = (chat) => {
-    try {
-      setMessages([]);
-      setMessagesPage(1);
-      setCurrentChat(chat);
-      setTab(1);
-    } catch (err) {}
-  };
-
-  const sendMessage = async (contentMessage) => {
     setLoading(true);
-    try {
-      await api.post(`/chats/${currentChat.id}/messages`, {
-        message: contentMessage,
-      });
-    } catch (err) {}
-    setLoading(false);
-  };
+    const delayDebounceFn = setTimeout(() => {
+      fetchContacts();
+    }, 500);
+    return () => clearTimeout(delayDebounceFn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParam, tab, pageNumber]);
 
-  const deleteChat = async (chat) => {
-    try {
-      await api.delete(`/chats/${chat.id}`);
-    } catch (err) {}
-  };
-
-  const findMessages = async (chatId) => {
-    setLoading(true);
-    try {
-      const { data } = await api.get(
-        `/chats/${chatId}/messages?pageNumber=${messagesPage}`
-      );
-      setMessagesPage((prev) => prev + 1);
-      setMessagesPageInfo(data);
-      setMessages((prev) => [...data.records, ...prev]);
-    } catch (err) {}
-    setLoading(false);
-  };
-
-  const loadMoreMessages = async () => {
-    if (!loading) {
-      findMessages(currentChat.id);
+  useEffect(() => {
+    const contact = contacts.find(c => c.id === contactId);
+    if (contact) {
+      setSelectedContact(contact);
     }
-  };
+  }, [contactId, contacts]);
 
-  const findChats = async () => {
+  const fetchContacts = async () => {
     try {
-      const { data } = await api.get("/chats");
-      return data;
+      const { data } = await api.get("/contacts", {
+        params: { searchParam, pageNumber, tab },
+      });
+      setContacts(data.contacts);
+      setHasMore(data.hasMore);
+      setLoading(false);
     } catch (err) {
-      console.log(err);
+      toastError(err);
     }
   };
 
-  const renderGrid = () => {
+  const handleSelectContact = (contact) => {
+    setContactId(contact.id);
+    setSelectedContact(contact);
+    setShowMessagesGrid(true);
+  };
+
+  const handleCloseMessages = () => {
+    setShowMessagesGrid(false);
+    setContactId("");
+  };
+
+  const handleScroll = (e) => {
+    if (!hasMore) return;
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - (scrollTop + 100) < clientHeight) {
+      setPageNumber(prevState => prevState + 1);
+    }
+  };
+
+  const renderMessagesGrid = () => {
     return (
-      <Grid className={classes.gridContainer} container>
-        <Grid className={classes.gridItem} md={3} item>
-          
-            <div className={classes.btnContainer}>
-              <Button
-                onClick={() => {
-                  setDialogType("new");
-                  setShowDialog(true);
-                }}
-                color="primary"
-                variant="contained"
-              >
-                Nova
-              </Button>
-            </div>
-          
-          <ChatList
-            chats={chats}
-            pageInfo={chatsPageInfo}
-            loading={loading}
-            handleSelectChat={(chat) => selectChat(chat)}
-            handleDeleteChat={(chat) => deleteChat(chat)}
-            handleEditChat={() => {
-              setDialogType("edit");
-              setShowDialog(true);
-            }}
-          />
-        </Grid>
-        <Grid className={classes.gridItem} md={9} item>
-          {isObject(currentChat) && has(currentChat, "id") && (
-            <ChatMessages
-              chat={currentChat}
-              scrollToBottomRef={scrollToBottomRef}
-              pageInfo={messagesPageInfo}
-              messages={messages}
-              loading={loading}
-              handleSendMessage={sendMessage}
-              handleLoadMore={loadMoreMessages}
-            />
-          )}
-        </Grid>
-      </Grid>
+      <MessagesContainer>
+        <ChatMessages
+          contact={selectedContact}
+          handleClose={handleCloseMessages}
+        />
+      </MessagesContainer>
     );
   };
 
-  const renderTab = () => {
+  const renderContactList = () => {
     return (
-      <Grid className={classes.gridContainer} container>
-        <Grid md={12} item>
-          <Tabs
-            value={tab}
-            indicatorColor="primary"
-            textColor="primary"
-            onChange={(e, v) => setTab(v)}
-            aria-label="disabled tabs example"
-          >
-            <Tab label="Chats" />
-            <Tab label="Mensagens" />
-          </Tabs>
-        </Grid>
-        {tab === 0 && (
-          <Grid className={classes.gridItemTab} md={12} item>
-            <div className={classes.btnContainer}>
-              <Button
-                onClick={() => setShowDialog(true)}
-                color="primary"
-                variant="contained"
-              >
-                Novo
-              </Button>
-            </div>
-            <ChatList
-              chats={chats}
-              pageInfo={chatsPageInfo}
-              loading={loading}
-              handleSelectChat={(chat) => selectChat(chat)}
-              handleDeleteChat={(chat) => deleteChat(chat)}
-            />
-          </Grid>
-        )}
-        {tab === 1 && (
-          <Grid className={classes.gridItemTab} md={12} item>
-            {isObject(currentChat) && has(currentChat, "id") && (
-              <ChatMessages
-                scrollToBottomRef={scrollToBottomRef}
-                pageInfo={messagesPageInfo}
-                messages={messages}
-                loading={loading}
-                handleSendMessage={sendMessage}
-                handleLoadMore={loadMoreMessages}
-              />
-            )}
-          </Grid>
-        )}
-      </Grid>
+      <ChatList
+        contacts={contacts}
+        loading={loading}
+        handleSelectContact={handleSelectContact}
+        hasMore={hasMore}
+        handleScroll={handleScroll}
+      />
     );
   };
 
   return (
-    <>
-      <ChatModal
-        type={dialogType}
-        open={showDialog}
-        chat={currentChat}
-        handleLoadNewChat={(data) => {
-          setMessages([]);
-          setMessagesPage(1);
-          setCurrentChat(data);
-          setTab(1);
-          history.push(`/chats/${data.uuid}`);
-        }}
-        handleClose={() => setShowDialog(false)}
-      />
-      <Paper className={classes.mainContainer}>
-        {isWidthUp("md", props.width) ? renderGrid() : renderTab()}
-      </Paper>
-    </>
+    <MainContainer>
+      <StyledPaper>
+        <ChatContainer>
+          {loading ? (
+            <LoadingContainer>
+              <CircularProgress />
+            </LoadingContainer>
+          ) : (
+            <>
+              {isDesktop ? (
+                <Grid container>
+                  <Grid item xs={4}>
+                    {renderContactList()}
+                  </Grid>
+                  <Grid item xs={8}>
+                    {renderMessagesGrid()}
+                  </Grid>
+                </Grid>
+              ) : (
+                <>
+                  {showMessagesGrid ? (
+                    renderMessagesGrid()
+                  ) : (
+                    renderContactList()
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </ChatContainer>
+      </StyledPaper>
+    </MainContainer>
   );
 }
 
-export default withWidth()(Chat);
+export default Chat;

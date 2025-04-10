@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useReducer, useContext } from "react";
 
-import { makeStyles } from "@material-ui/core/styles";
-import List from "@material-ui/core/List";
-import Paper from "@material-ui/core/Paper";
+import { makeStyles } from "@mui/material/styles";
+import List from "@mui/material/List";
+import Paper from "@mui/material/Paper";
 
 import TicketListItem from "../TicketListItemCustom";
 import TicketsListSkeleton from "../TicketsListSkeleton";

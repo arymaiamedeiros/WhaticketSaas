@@ -6,22 +6,24 @@ import React, {
     useContext,
 } from "react";
 import { toast } from "react-toastify";
-
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import IconButton from "@material-ui/core/IconButton";
-import SearchIcon from "@material-ui/icons/Search";
-import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
-
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import EditIcon from "@material-ui/icons/Edit";
+import { styled } from '@mui/material/styles';
+import {
+    Paper,
+    Button,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+    IconButton,
+    TextField,
+    InputAdornment,
+} from '@mui/material';
+import {
+    Search as SearchIcon,
+    DeleteOutline as DeleteOutlineIcon,
+    Edit as EditIcon,
+} from '@mui/icons-material';
 
 import MainContainer from "../../components/MainContainer";
 import MainHeader from "../../components/MainHeader";
@@ -81,18 +83,14 @@ const reducer = (state, action) => {
     }
 };
 
-const useStyles = makeStyles((theme) => ({
-    mainPaper: {
-        flex: 1,
-        padding: theme.spacing(1),
-        overflowY: "scroll",
-        ...theme.scrollbarStyles,
-    },
+const MainPaper = styled(Paper)(({ theme }) => ({
+    flex: 1,
+    padding: theme.spacing(1),
+    overflowY: "scroll",
+    ...theme.scrollbarStyles,
 }));
 
 const FileLists = () => {
-    const classes = useStyles();
-
     const { user } = useContext(AuthContext);
 
     const [loading, setLoading] = useState(false);
@@ -238,8 +236,7 @@ const FileLists = () => {
                     </Button>
                 </MainHeaderButtonsWrapper>
             </MainHeader>
-            <Paper
-                className={classes.mainPaper}
+            <MainPaper
                 variant="outlined"
                 onScroll={handleScroll}
             >
@@ -247,28 +244,26 @@ const FileLists = () => {
                     <TableHead>
                         <TableRow>
                             <TableCell align="center">{i18n.t("files.table.name")}</TableCell>
-                            <TableCell align="center">
-                                {i18n.t("files.table.actions")}
-                            </TableCell>
+                            <TableCell align="center">{i18n.t("files.table.actions")}</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         <>
-                            {files.map((fileList) => (
-                                <TableRow key={fileList.id}>
+                            {files.map((file) => (
+                                <TableRow key={file.id}>
+                                    <TableCell align="center">{file.name}</TableCell>
                                     <TableCell align="center">
-                                        {fileList.name}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <IconButton size="small" onClick={() => handleEditFileList(fileList)}>
-                                            <EditIcon />
-                                        </IconButton>
-
                                         <IconButton
                                             size="small"
-                                            onClick={(e) => {
+                                            onClick={() => handleEditFileList(file)}
+                                        >
+                                            <EditIcon />
+                                        </IconButton>
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => {
+                                                setDeletingFileList(file);
                                                 setConfirmModalOpen(true);
-                                                setDeletingFileList(fileList);
                                             }}
                                         >
                                             <DeleteOutlineIcon />
@@ -276,11 +271,11 @@ const FileLists = () => {
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {loading && <TableRowSkeleton columns={4} />}
+                            {loading && <TableRowSkeleton columns={2} />}
                         </>
                     </TableBody>
                 </Table>
-            </Paper>
+            </MainPaper>
         </MainContainer>
     );
 };

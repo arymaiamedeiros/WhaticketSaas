@@ -1,34 +1,36 @@
 import React, { useEffect, useState } from "react";
-
-import { makeStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import IconButton from "@material-ui/core/IconButton";
-import CloseIcon from "@material-ui/icons/Close";
-import Drawer from "@material-ui/core/Drawer";
-import Link from "@material-ui/core/Link";
-import InputLabel from "@material-ui/core/InputLabel";
-import Avatar from "@material-ui/core/Avatar";
-import Button from "@material-ui/core/Button";
-import Paper from "@material-ui/core/Paper";
-import CreateIcon from '@material-ui/icons/Create';
+import { styled } from "@mui/material/styles";
+import {
+	Typography,
+	IconButton,
+	Drawer,
+	Link,
+	InputLabel,
+	Avatar,
+	Button,
+	Paper,
+	CardHeader,
+	Box
+} from "@mui/material";
+import {
+	Close as CloseIcon,
+	Create as CreateIcon
+} from "@mui/icons-material";
 
 import { i18n } from "../../translate/i18n";
 
 import ContactDrawerSkeleton from "../ContactDrawerSkeleton";
 import MarkdownWrapper from "../MarkdownWrapper";
-import { CardHeader } from "@material-ui/core";
 import { ContactForm } from "../ContactForm";
 import ContactModal from "../ContactModal";
 import { ContactNotes } from "../ContactNotes";
 
 const drawerWidth = 320;
 
-const useStyles = makeStyles(theme => ({
-	drawer: {
-		width: drawerWidth,
-		flexShrink: 0,
-	},
-	drawerPaper: {
+const DrawerContainer = styled(Drawer)(({ theme }) => ({
+	width: drawerWidth,
+	flexShrink: 0,
+	"& .MuiDrawer-paper": {
 		width: drawerWidth,
 		display: "flex",
 		borderTop: "1px solid rgba(0, 0, 0, 0.12)",
@@ -37,57 +39,52 @@ const useStyles = makeStyles(theme => ({
 		borderTopRightRadius: 4,
 		borderBottomRightRadius: 4,
 	},
-	header: {
-		display: "flex",
-		borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
-		backgroundColor: theme.palette.contactdrawer,
-		alignItems: "center",
-		padding: theme.spacing(0, 1),
-		minHeight: "73px",
-		justifyContent: "flex-start",
-	},
-	content: {
-		display: "flex",
-		backgroundColor: theme.palette.contactdrawer,
-		flexDirection: "column",
-		padding: "8px 0px 8px 8px",
-		height: "100%",
-		overflowY: "scroll",
-		...theme.scrollbarStyles,
-	},
+}));
 
-	contactAvatar: {
-		margin: 15,
-		width: 100,
-		height: 100,
-	},
+const Header = styled(Box)(({ theme }) => ({
+	display: "flex",
+	borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
+	backgroundColor: theme.palette.contactdrawer,
+	alignItems: "center",
+	padding: theme.spacing(0, 1),
+	minHeight: "73px",
+	justifyContent: "flex-start",
+}));
 
-	contactHeader: {
-		display: "flex",
-		padding: 8,
-		flexDirection: "column",
-		alignItems: "center",
-		justifyContent: "center",
-		"& > *": {
-			margin: 4,
-		},
-	},
+const Content = styled(Box)(({ theme }) => ({
+	display: "flex",
+	backgroundColor: theme.palette.contactdrawer,
+	flexDirection: "column",
+	padding: "8px 0px 8px 8px",
+	height: "100%",
+	overflowY: "scroll",
+	...theme.scrollbarStyles,
+}));
 
-	contactDetails: {
-		marginTop: 8,
-		padding: 8,
-		display: "flex",
-		flexDirection: "column",
-	},
-	contactExtraInfo: {
-		marginTop: 4,
-		padding: 6,
+const ContactHeader = styled(Paper)(({ theme }) => ({
+	display: "flex",
+	padding: 8,
+	flexDirection: "column",
+	alignItems: "center",
+	justifyContent: "center",
+	"& > *": {
+		margin: 4,
 	},
 }));
 
-const ContactDrawer = ({ open, handleDrawerClose, contact, ticket, loading }) => {
-	const classes = useStyles();
+const ContactDetails = styled(Paper)(({ theme }) => ({
+	marginTop: 8,
+	padding: 8,
+	display: "flex",
+	flexDirection: "column",
+}));
 
+const ContactExtraInfo = styled(Paper)(({ theme }) => ({
+	marginTop: 4,
+	padding: 6,
+}));
+
+const ContactDrawer = ({ open, handleDrawerClose, contact, ticket, loading }) => {
 	const [modalOpen, setModalOpen] = useState(false);
 	const [openForm, setOpenForm] = useState(false);
 
@@ -97,8 +94,7 @@ const ContactDrawer = ({ open, handleDrawerClose, contact, ticket, loading }) =>
 
 	return (
 		<>
-			<Drawer
-				className={classes.drawer}
+			<DrawerContainer
 				variant="persistent"
 				anchor="right"
 				open={open}
@@ -108,23 +104,20 @@ const ContactDrawer = ({ open, handleDrawerClose, contact, ticket, loading }) =>
 					container: document.getElementById("drawer-container"),
 					style: { position: "absolute" },
 				}}
-				classes={{
-					paper: classes.drawerPaper,
-				}}
 			>
-				<div className={classes.header}>
+				<Header>
 					<IconButton onClick={handleDrawerClose}>
 						<CloseIcon />
 					</IconButton>
 					<Typography style={{ justifySelf: "center" }}>
 						{i18n.t("contactDrawer.header")}
 					</Typography>
-				</div>
+				</Header>
 				{loading ? (
-					<ContactDrawerSkeleton classes={classes} />
+					<ContactDrawerSkeleton />
 				) : (
-					<div className={classes.content}>
-						<Paper square variant="outlined" className={classes.contactHeader}>
+					<Content>
+						<ContactHeader variant="outlined">
 							<CardHeader
 								onClick={() => {}}
 								style={{ cursor: "pointer", width: '100%' }}
@@ -159,39 +152,37 @@ const ContactDrawer = ({ open, handleDrawerClose, contact, ticket, loading }) =>
 								{i18n.t("contactDrawer.buttons.edit")}
 							</Button>
 							{(contact.id && openForm) && <ContactForm initialContact={contact} onCancel={() => setOpenForm(false)} />}
-						</Paper>
-						<Paper square variant="outlined" className={classes.contactDetails}>
+						</ContactHeader>
+						<ContactDetails variant="outlined">
 							<Typography variant="subtitle1" style={{marginBottom: 10}}>
 								{i18n.t("ticketOptionsMenu.appointmentsModal.title")}
 							</Typography>
 							<ContactNotes ticket={ticket} />
-						</Paper>
-						<Paper square variant="outlined" className={classes.contactDetails}>
+						</ContactDetails>
+						<ContactDetails variant="outlined">
 							<ContactModal
 								open={modalOpen}
 								onClose={() => setModalOpen(false)}
 								contactId={contact.id}
-							></ContactModal>
+							/>
 							<Typography variant="subtitle1">
 								{i18n.t("contactDrawer.extraInfo")}
 							</Typography>
 							{contact?.extraInfo?.map(info => (
-								<Paper
+								<ContactExtraInfo
 									key={info.id}
-									square
 									variant="outlined"
-									className={classes.contactExtraInfo}
 								>
 									<InputLabel>{info.name}</InputLabel>
 									<Typography component="div" noWrap style={{ paddingTop: 2 }}>
 										<MarkdownWrapper>{info.value}</MarkdownWrapper>
 									</Typography>
-								</Paper>
+								</ContactExtraInfo>
 							))}
-						</Paper>
-					</div>
+						</ContactDetails>
+					</Content>
 				)}
-			</Drawer>
+			</DrawerContainer>
 		</>
 	);
 };

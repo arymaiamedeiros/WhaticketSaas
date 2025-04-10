@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
-import List from '@material-ui/core/List';
-import { makeStyles } from '@material-ui/core/styles';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import List from '@mui/material/List';
+import { makeStyles } from '@mui/material/styles';
 import * as Yup from "yup";
 import { Formik, Form, Field } from "formik";
 
@@ -16,7 +16,7 @@ import { i18n } from "../../translate/i18n";
 import ButtonWithSpinner from '../ButtonWithSpinner';
 
 import useTicketNotes from '../../hooks/useTicketNotes';
-import { Grid } from '@material-ui/core';
+import { Grid } from '@mui/material';
 
 const useStyles = makeStyles((theme) => ({
     root: {

@@ -3,9 +3,9 @@ import React, { useState, useEffect } from "react";
 import "react-toastify/dist/ReactToastify.css";
 import { QueryClient, QueryClientProvider } from "react-query";
 
-import { ptBR } from "@material-ui/core/locale";
-import { createTheme, ThemeProvider } from "@material-ui/core/styles";
-import { useMediaQuery } from "@material-ui/core";
+import { ptBR } from "@mui/material/locale";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { useMediaQuery } from "@mui/material";
 import ColorModeContext from "./layout/themeContext";
 
 import Routes from "./routes";
@@ -49,7 +49,7 @@ const App = () => {
                 },
             },
             palette: {
-                type: mode,
+                mode,
                 primary: { main: mode === "light" ? "#1380D6" : "#FFFFFF" },
                 textPrimary: mode === "light" ? "#1380D6" : "#FFFFFF",
                 borderPrimary: mode === "light" ? "#1380D6" : "#FFFFFF",
@@ -57,28 +57,27 @@ const App = () => {
                 light: { main: mode === "light" ? "#F3F3F3" : "#333333" },
                 tabHeaderBackground: mode === "light" ? "#EEE" : "#666",
                 optionsBackground: mode === "light" ? "#fafafa" : "#333",
-				options: mode === "light" ? "#fafafa" : "#666",
-				fontecor: mode === "light" ? "#128c7e" : "#fff",
+                options: mode === "light" ? "#fafafa" : "#666",
+                fontecor: mode === "light" ? "#128c7e" : "#fff",
                 fancyBackground: mode === "light" ? "#fafafa" : "#333",
-				bordabox: mode === "light" ? "#eee" : "#333",
-				newmessagebox: mode === "light" ? "#eee" : "#333",
-				inputdigita: mode === "light" ? "#fff" : "#666",
-				contactdrawer: mode === "light" ? "#fff" : "#666",
-				announcements: mode === "light" ? "#ededed" : "#333",
-				login: mode === "light" ? "#fff" : "#1C1C1C",
-				announcementspopover: mode === "light" ? "#fff" : "#666",
-				chatlist: mode === "light" ? "#eee" : "#666",
-				boxlist: mode === "light" ? "#ededed" : "#666",
-				boxchatlist: mode === "light" ? "#ededed" : "#333",
+                bordabox: mode === "light" ? "#eee" : "#333",
+                newmessagebox: mode === "light" ? "#eee" : "#333",
+                inputdigita: mode === "light" ? "#fff" : "#666",
+                contactdrawer: mode === "light" ? "#fff" : "#666",
+                announcements: mode === "light" ? "#ededed" : "#333",
+                login: mode === "light" ? "#fff" : "#1C1C1C",
+                announcementspopover: mode === "light" ? "#fff" : "#666",
+                chatlist: mode === "light" ? "#eee" : "#666",
+                boxlist: mode === "light" ? "#ededed" : "#666",
+                boxchatlist: mode === "light" ? "#ededed" : "#333",
                 total: mode === "light" ? "#fff" : "#222",
                 messageIcons: mode === "light" ? "grey" : "#F3F3F3",
                 inputBackground: mode === "light" ? "#FFFFFF" : "#333",
                 barraSuperior: mode === "light" ? "linear-gradient(to right, #1380D6, #1380D6 , #1380D6)" : "#666",
-				boxticket: mode === "light" ? "#EEE" : "#666",
-				campaigntab: mode === "light" ? "#ededed" : "#666",
-				mediainput: mode === "light" ? "#ededed" : "#1c1c1c",
+                boxticket: mode === "light" ? "#EEE" : "#666",
+                campaigntab: mode === "light" ? "#ededed" : "#666",
+                mediainput: mode === "light" ? "#ededed" : "#1c1c1c",
             },
-            mode,
         },
         locale
     );
@@ -96,8 +95,6 @@ const App = () => {
     useEffect(() => {
         window.localStorage.setItem("preferredTheme", mode);
     }, [mode]);
-
-
 
     return (
         <ColorModeContext.Provider value={{ colorMode }}>

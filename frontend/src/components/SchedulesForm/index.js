@@ -1,140 +1,164 @@
-import React, { useState, useEffect } from "react";
-import { makeStyles, TextField, Grid, Container } from "@material-ui/core";
-import { Formik, Form, FastField, FieldArray } from "formik";
-import { isArray } from "lodash";
-import NumberFormat from "react-number-format";
-import ButtonWithSpinner from "../ButtonWithSpinner";
+import React, { useState } from "react";
+import { styled } from '@mui/material/styles';
+import {
+  Box,
+  Button,
+  Grid,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography
+} from "@mui/material";
+import {
+  Delete as DeleteIcon,
+  Edit as EditIcon
+} from "@mui/icons-material";
+import { i18n } from "../../translate/i18n";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    width: "100%",
-  },
-  fullWidth: {
-    width: "100%",
-  },
-  textfield: {
-    width: "100%",
-  },
-  row: {
-    paddingTop: theme.spacing(2),
-    paddingBottom: theme.spacing(2),
-  },
-  control: {
-    paddingRight: theme.spacing(1),
-    paddingLeft: theme.spacing(1),
-  },
-  buttonContainer: {
-    textAlign: "right",
-    padding: theme.spacing(1),
+const Root = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: theme.shape.borderRadius,
+}));
+
+const StyledTable = styled(Table)(({ theme }) => ({
+  minWidth: 650,
+  '& .MuiTableCell-root': {
+    padding: theme.spacing(1.5),
   },
 }));
 
-function SchedulesForm(props) {
-  const { initialValues, onSubmit, loading, labelSaveButton } = props;
-  const classes = useStyles();
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  fontWeight: "bold",
+  backgroundColor: theme.palette.grey[100],
+}));
 
-  const [schedules, setSchedules] = useState([
-    { weekday: "Segunda-feira", weekdayEn: "monday", startTime: "", endTime: "", },
-    { weekday: "Terça-feira", weekdayEn: "tuesday", startTime: "", endTime: "", },
-    { weekday: "Quarta-feira", weekdayEn: "wednesday", startTime: "", endTime: "", },
-    { weekday: "Quinta-feira", weekdayEn: "thursday", startTime: "", endTime: "", },
-    { weekday: "Sexta-feira", weekdayEn: "friday", startTime: "", endTime: "" },
-    { weekday: "Sábado", weekdayEn: "saturday", startTime: "", endTime: "" },
-    { weekday: "Domingo", weekdayEn: "sunday", startTime: "", endTime: "" },
-  ]);
+const ActionButtons = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  gap: theme.spacing(1),
+}));
 
-  useEffect(() => {
-    if (isArray(initialValues) && initialValues.length > 0) {
-      setSchedules(initialValues);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialValues]);
+const ScheduleForm = ({ schedules, handleSaveSchedules }) => {
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editedSchedule, setEditedSchedule] = useState(null);
 
-  const handleSubmit = (data) => {
-    onSubmit(data);
+  const handleEdit = (index) => {
+    setEditingIndex(index);
+    setEditedSchedule(schedules[index]);
+  };
+
+  const handleSave = () => {
+    const newSchedules = [...schedules];
+    newSchedules[editingIndex] = editedSchedule;
+    handleSaveSchedules(newSchedules);
+    setEditingIndex(null);
+    setEditedSchedule(null);
+  };
+
+  const handleCancel = () => {
+    setEditingIndex(null);
+    setEditedSchedule(null);
+  };
+
+  const handleChange = (field, value) => {
+    setEditedSchedule(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   return (
-    <Formik
-      enableReinitialize
-      className={classes.fullWidth}
-      initialValues={{ schedules }}
-      onSubmit={({ schedules }) =>
-        setTimeout(() => {
-          handleSubmit(schedules);
-        }, 500)
-      }
-    >
-      {({ values }) => (
-        <Form className={classes.fullWidth}>
-          <FieldArray
-            name="schedules"
-            render={(arrayHelpers) => (
-              <Grid spacing={4} container>
-                {values.schedules.map((item, index) => {
-                  return (
-                      <Container>
-                          <FastField
-                            as={TextField}
-                            label="Dia da Semana"
-                            name={`schedules[${index}].weekday`}
-                            disabled
-                            variant="outlined"
-                            style={{ marginRight: "3.2%", width: "30%" }}
-                            margin="dense"
-                          />
-                          <FastField
-                            name={`schedules[${index}].startTime`}
-                            >
-                            {({ field }) => (
-                              <NumberFormat
-                                label="Hora de Inicial"
-                                {...field}
-                                variant="outlined"
-                                margin="dense"
-                                customInput={TextField}
-                                format="##:##"
-                                style={{ marginRight: "3.2%", width: "30%" }}
-                              />
-                            )}
-                          </FastField>
-                          <FastField
-                            name={`schedules[${index}].endTime`}
-                            >
-                            {({ field }) => (
-                              <NumberFormat
-                                label="Hora de Final"
-                                {...field}
-                                variant="outlined"
-                                margin="dense"
-                                customInput={TextField}
-                                format="##:##"
-                                style={{ marginRight: "3.2%", width: "30%" }}
-                              />
-                            )}
-                          </FastField>
-
-                      </Container>
-
-                  );
-                })}
-              </Grid>
-            )}
-          ></FieldArray>
-          <div style={{ textAlign: "center", marginTop: "2%" }} className={classes.buttonContainer}>
-            <ButtonWithSpinner
-              loading={loading}
-              type="submit"
-              color="primary"
-              variant="contained"
-            >
-              {labelSaveButton ?? "Salvar"}
-            </ButtonWithSpinner>
-          </div>
-        </Form>
-      )}
-    </Formik>
+    <Root>
+      <TableContainer component={Paper} elevation={2}>
+        <StyledTable>
+          <TableHead>
+            <TableRow>
+              <StyledTableCell>Dia</StyledTableCell>
+              <StyledTableCell>Horário de Início</StyledTableCell>
+              <StyledTableCell>Horário de Término</StyledTableCell>
+              <StyledTableCell>Ações</StyledTableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {schedules.map((schedule, index) => (
+              <TableRow 
+                key={index}
+                sx={{
+                  '&:nth-of-type(odd)': {
+                    backgroundColor: 'action.hover',
+                  },
+                }}
+              >
+                <TableCell>{schedule.weekday}</TableCell>
+                <TableCell>
+                  {editingIndex === index ? (
+                    <TextField
+                      type="time"
+                      value={editedSchedule.startTime}
+                      onChange={(e) => handleChange("startTime", e.target.value)}
+                      size="small"
+                      fullWidth
+                    />
+                  ) : (
+                    schedule.startTime
+                  )}
+                </TableCell>
+                <TableCell>
+                  {editingIndex === index ? (
+                    <TextField
+                      type="time"
+                      value={editedSchedule.endTime}
+                      onChange={(e) => handleChange("endTime", e.target.value)}
+                      size="small"
+                      fullWidth
+                    />
+                  ) : (
+                    schedule.endTime
+                  )}
+                </TableCell>
+                <TableCell>
+                  {editingIndex === index ? (
+                    <ActionButtons>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="primary"
+                        onClick={handleSave}
+                      >
+                        Salvar
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="secondary"
+                        onClick={handleCancel}
+                      >
+                        Cancelar
+                      </Button>
+                    </ActionButtons>
+                  ) : (
+                    <IconButton
+                      size="small"
+                      onClick={() => handleEdit(index)}
+                      color="primary"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </StyledTable>
+      </TableContainer>
+    </Root>
   );
-}
+};
 
-export default SchedulesForm;
+export default ScheduleForm;

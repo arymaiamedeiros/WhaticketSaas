@@ -6,37 +6,45 @@ import React, {
   useContext,
 } from "react";
 import { toast } from "react-toastify";
-
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import IconButton from "@material-ui/core/IconButton";
-import SearchIcon from "@material-ui/icons/Search";
-import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
-
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import EditIcon from "@material-ui/icons/Edit";
+import { styled } from '@mui/material/styles';
+import {
+  Paper,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  IconButton,
+  TextField,
+  InputAdornment,
+  Chip,
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  DeleteOutline as DeleteOutlineIcon,
+  Edit as EditIcon,
+} from '@mui/icons-material';
 
 import MainContainer from "../../components/MainContainer";
 import MainHeader from "../../components/MainHeader";
 import MainHeaderButtonsWrapper from "../../components/MainHeaderButtonsWrapper";
 import Title from "../../components/Title";
-
 import api from "../../services/api";
 import { i18n } from "../../translate/i18n";
 import TableRowSkeleton from "../../components/TableRowSkeleton";
 import TagModal from "../../components/TagModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import toastError from "../../errors/toastError";
-import { Chip } from "@material-ui/core";
 import { socketConnection } from "../../services/socket";
 import { AuthContext } from "../../context/Auth/AuthContext";
+
+const MainPaper = styled(Paper)(({ theme }) => ({
+  flex: 1,
+  padding: theme.spacing(1),
+  overflowY: "scroll",
+  ...theme.scrollbarStyles,
+}));
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_TAGS") {
@@ -82,18 +90,7 @@ const reducer = (state, action) => {
   }
 };
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-}));
-
 const Tags = () => {
-  const classes = useStyles();
-
   const { user } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
@@ -229,6 +226,7 @@ const Tags = () => {
                 </InputAdornment>
               ),
             }}
+            size="small"
           />
           <Button
             variant="contained"
@@ -239,50 +237,38 @@ const Tags = () => {
           </Button>
         </MainHeaderButtonsWrapper>
       </MainHeader>
-      <Paper
-        className={classes.mainPaper}
-        variant="outlined"
-        onScroll={handleScroll}
-      >
+      <MainPaper variant="outlined" onScroll={handleScroll}>
         <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell align="center">{i18n.t("tags.table.name")}</TableCell>
-              <TableCell align="center">
-                {i18n.t("tags.table.tickets")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("tags.table.actions")}
-              </TableCell>
+              <TableCell align="center">{i18n.t("tags.table.color")}</TableCell>
+              <TableCell align="center">{i18n.t("tags.table.actions")}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             <>
               {tags.map((tag) => (
                 <TableRow key={tag.id}>
+                  <TableCell align="center">{tag.name}</TableCell>
                   <TableCell align="center">
                     <Chip
-                      variant="outlined"
-                      style={{
-                        backgroundColor: tag.color,
-                        textShadow: "1px 1px 1px #000",
-                        color: "white",
-                      }}
-                      label={tag.name}
-                      size="small"
+                      label={tag.color}
+                      style={{ backgroundColor: tag.color, color: "white" }}
                     />
                   </TableCell>
-                  <TableCell align="center">{tag.ticketsCount}</TableCell>
                   <TableCell align="center">
-                    <IconButton size="small" onClick={() => handleEditTag(tag)}>
-                      <EditIcon />
-                    </IconButton>
-
                     <IconButton
                       size="small"
-                      onClick={(e) => {
-                        setConfirmModalOpen(true);
+                      onClick={() => handleEditTag(tag)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => {
                         setDeletingTag(tag);
+                        setConfirmModalOpen(true);
                       }}
                     >
                       <DeleteOutlineIcon />
@@ -290,11 +276,11 @@ const Tags = () => {
                   </TableCell>
                 </TableRow>
               ))}
-              {loading && <TableRowSkeleton columns={4} />}
+              {loading && <TableRowSkeleton columns={3} />}
             </>
           </TableBody>
         </Table>
-      </Paper>
+      </MainPaper>
     </MainContainer>
   );
 };

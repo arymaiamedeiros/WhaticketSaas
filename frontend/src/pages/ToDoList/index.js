@@ -1,46 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import TextField from '@material-ui/core/TextField';
-import Button from '@material-ui/core/Button';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import IconButton from '@material-ui/core/IconButton';
-import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
+import { styled } from '@mui/material/styles';
+import {
+  TextField,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  IconButton,
+} from '@mui/material';
+import {
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+} from '@mui/icons-material';
 
-const useStyles = makeStyles({
-  root: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    margin: '2rem'
-  },
-  inputContainer: {
-    display: 'flex',
-    width: '100%',
-    marginBottom: '1rem'
-  },
-  input: {
-    flexGrow: 1,
-    marginRight: '1rem'
-  },
-  listContainer: {
-    width: '100%',
-    height: '100%',
-    marginTop: '1rem',
-    backgroundColor: '#f5f5f5',
-    borderRadius: '5px',
-  },
-  list: {
-    marginBottom: '5px'
-  }
+const Root = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  margin: '2rem'
+});
+
+const InputContainer = styled('div')({
+  display: 'flex',
+  width: '100%',
+  marginBottom: '1rem'
+});
+
+const StyledTextField = styled(TextField)({
+  flexGrow: 1,
+  marginRight: '1rem'
+});
+
+const ListContainer = styled('div')({
+  width: '100%',
+  height: '100%',
+  marginTop: '1rem',
+  backgroundColor: '#f5f5f5',
+  borderRadius: '5px',
+});
+
+const StyledListItem = styled(ListItem)({
+  marginBottom: '5px'
 });
 
 const ToDoList = () => {
-  const classes = useStyles();
-
   const [task, setTask] = useState('');
   const [tasks, setTasks] = useState([]);
   const [editIndex, setEditIndex] = useState(-1);
@@ -93,10 +97,9 @@ const ToDoList = () => {
   };
 
   return (
-    <div className={classes.root}>
-      <div className={classes.inputContainer}>
-        <TextField
-          className={classes.input}
+    <Root>
+      <InputContainer>
+        <StyledTextField
           label="Nova tarefa"
           value={task}
           onChange={handleTaskChange}
@@ -105,12 +108,15 @@ const ToDoList = () => {
         <Button variant="contained" color="primary" onClick={handleAddTask}>
           {editIndex >= 0 ? 'Salvar' : 'Adicionar'}
         </Button>
-      </div>
-      <div className={classes.listContainer}>
+      </InputContainer>
+      <ListContainer>
         <List>
           {tasks.map((task, index) => (
-            <ListItem key={index} className={classes.list}>
-              <ListItemText primary={task.text} secondary={new Date(task.updatedAt).toLocaleString()} />
+            <StyledListItem key={index}>
+              <ListItemText 
+                primary={task.text} 
+                secondary={new Date(task.updatedAt).toLocaleString()} 
+              />
               <ListItemSecondaryAction>
                 <IconButton onClick={() => handleEditTask(index)}>
                   <EditIcon />
@@ -119,13 +125,12 @@ const ToDoList = () => {
                   <DeleteIcon />
                 </IconButton>
               </ListItemSecondaryAction>
-            </ListItem>
+            </StyledListItem>
           ))}
         </List>
-      </div>
-    </div>
+      </ListContainer>
+    </Root>
   );
 };
-
 
 export default ToDoList;

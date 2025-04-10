@@ -18,10 +18,10 @@ import {
   TextField,
   Grid,
   Paper,
-} from "@material-ui/core";
+} from "@mui/material";
 
-import { makeStyles } from "@material-ui/core/styles";
-import { green } from "@material-ui/core/colors";
+import { makeStyles } from "@mui/material/styles";
+import { green } from "@mui/material/colors";
 
 import { i18n } from "../../translate/i18n";
 

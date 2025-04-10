@@ -1,11 +1,20 @@
 import React, { useState, useEffect, useReducer, useCallback, useContext } from "react";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
+import { styled } from '@mui/material/styles';
+import {
+  Paper,
+  Button,
+  TextField,
+  InputAdornment,
+  Box,
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  DeleteOutline as DeleteOutlineIcon,
+  Edit as EditIcon,
+} from '@mui/icons-material';
+
 import MainContainer from "../../components/MainContainer";
 import MainHeader from "../../components/MainHeader";
 import Title from "../../components/Title";
@@ -22,11 +31,8 @@ import usePlans from "../../hooks/usePlans";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import "moment/locale/pt-br";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import SearchIcon from "@material-ui/icons/Search";
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import EditIcon from "@material-ui/icons/Edit";
 
-import "./Schedules.css"; // Importe o arquivo CSS
+import "./Schedules.css";
 
 // Defina a função getUrlParam antes de usá-la
 function getUrlParam(paramName) {
@@ -35,10 +41,10 @@ function getUrlParam(paramName) {
 }
 
 const eventTitleStyle = {
-  fontSize: "14px", // Defina um tamanho de fonte menor
-  overflow: "hidden", // Oculte qualquer conteúdo excedente
-  whiteSpace: "nowrap", // Evite a quebra de linha do texto
-  textOverflow: "ellipsis", // Exiba "..." se o texto for muito longo
+  fontSize: "14px",
+  overflow: "hidden",
+  whiteSpace: "nowrap",
+  textOverflow: "ellipsis",
 };
 
 const localizer = momentLocalizer(moment);
@@ -92,19 +98,15 @@ const reducer = (state, action) => {
   return state;
 };
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
+const MainPaper = styled(Paper)(({ theme }) => ({
+  flex: 1,
+  padding: theme.spacing(1),
+  overflowY: "scroll",
+  ...theme.scrollbarStyles,
 }));
 
 const Schedules = () => {
-  const classes = useStyles();
   const history = useHistory();
-
   const { user } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
@@ -117,7 +119,6 @@ const Schedules = () => {
   const [schedules, dispatch] = useReducer(reducer, []);
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [contactId, setContactId] = useState(+getUrlParam("contactId"));
-
 
   const fetchSchedules = useCallback(async () => {
     try {
@@ -248,20 +249,20 @@ const Schedules = () => {
       >
         {i18n.t("schedules.confirmationModal.deleteMessage")}
       </ConfirmationModal>
+
       <ScheduleModal
         open={scheduleModalOpen}
         onClose={handleCloseScheduleModal}
-        reload={fetchSchedules}
-        aria-labelledby="form-dialog-title"
-        scheduleId={selectedSchedule && selectedSchedule.id}
+        scheduleId={selectedSchedule?.id}
         contactId={contactId}
         cleanContact={cleanContact}
       />
+
       <MainHeader>
-        <Title>{i18n.t("schedules.title")} ({schedules.length})</Title>
+        <Title>{i18n.t("schedules.title")}</Title>
         <MainHeaderButtonsWrapper>
           <TextField
-            placeholder={i18n.t("contacts.searchPlaceholder")}
+            placeholder={i18n.t("schedules.searchPlaceholder")}
             type="search"
             value={searchParam}
             onChange={handleSearch}
@@ -272,6 +273,7 @@ const Schedules = () => {
                 </InputAdornment>
               ),
             }}
+            size="small"
           />
           <Button
             variant="contained"
@@ -282,39 +284,55 @@ const Schedules = () => {
           </Button>
         </MainHeaderButtonsWrapper>
       </MainHeader>
-      <Paper className={classes.mainPaper} variant="outlined" onScroll={handleScroll}>
-        <Calendar
-          messages={defaultMessages}
-          formats={{
-          agendaDateFormat: "DD/MM ddd",
-          weekdayFormat: "dddd"
-      }}
-          localizer={localizer}
-          events={schedules.map((schedule) => ({
-            title: (
-              <div className="event-container">
-                <div style={eventTitleStyle}>{schedule.contact.name}</div>
-                <DeleteOutlineIcon
-                  onClick={() => handleDeleteSchedule(schedule.id)}
-                  className="delete-icon"
-                />
-                <EditIcon
-                  onClick={() => {
-                    handleEditSchedule(schedule);
-                    setScheduleModalOpen(true);
-                  }}
-                  className="edit-icon"
-                />
-              </div>
-            ),
-            start: new Date(schedule.sendAt),
-            end: new Date(schedule.sendAt),
-          }))}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: 500 }}
-        />
-      </Paper>
+
+      <MainPaper onScroll={handleScroll}>
+        <Box sx={{ height: "calc(100vh - 200px)" }}>
+          <Calendar
+            localizer={localizer}
+            events={schedules.map((schedule) => ({
+              id: schedule.id,
+              title: truncate(schedule.title, 30),
+              start: new Date(schedule.scheduledAt),
+              end: new Date(schedule.scheduledAt),
+              allDay: false,
+              schedule: schedule,
+            }))}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ height: "100%" }}
+            messages={defaultMessages}
+            onSelectEvent={(event) => handleEditSchedule(event.schedule)}
+            eventPropGetter={(event) => ({
+              style: {
+                backgroundColor: event.schedule.color || "#2196f3",
+                borderRadius: "4px",
+                opacity: 0.8,
+                color: "white",
+                border: "0px",
+                display: "block",
+              },
+            })}
+            components={{
+              event: ({ event }) => (
+                <div className="event-container">
+                  <span style={eventTitleStyle}>{event.title}</span>
+                  <EditIcon
+                    className="edit-icon"
+                    onClick={() => handleEditSchedule(event.schedule)}
+                  />
+                  <DeleteOutlineIcon
+                    className="delete-icon"
+                    onClick={() => {
+                      setDeletingSchedule(event.schedule);
+                      setConfirmModalOpen(true);
+                    }}
+                  />
+                </div>
+              ),
+            }}
+          />
+        </Box>
+      </MainPaper>
     </MainContainer>
   );
 };

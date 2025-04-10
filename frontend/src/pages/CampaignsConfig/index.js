@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
-
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
+import { styled } from "@mui/material/styles";
+import Paper from "@mui/material/Paper";
 import { toast } from "react-toastify";
 
 import MainContainer from "../../components/MainContainer";
 import MainHeader from "../../components/MainHeader";
 import Title from "../../components/Title";
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import api from "../../services/api";
 
 import { i18n } from "../../translate/i18n";
@@ -27,23 +26,23 @@ import {
   TableRow,
   TextField,
   Typography,
-} from "@material-ui/core";
+} from "@mui/material";
 import ConfirmationModal from "../../components/ConfirmationModal";
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-  textRight: {
-    textAlign: "right",
-  },
-  tabPanelsContainer: {
-    padding: theme.spacing(2),
-  },
+const MainPaper = styled(Paper)(({ theme }) => ({
+  flex: 1,
+  padding: theme.spacing(1),
+  overflowY: "scroll",
+  ...theme.scrollbarStyles,
 }));
+
+const TabPanelsContainer = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+}));
+
+const TextRight = styled(Box)({
+  textAlign: "right",
+});
 
 const initialSettings = {
   messageInterval: 20,
@@ -53,8 +52,6 @@ const initialSettings = {
 };
 
 const CampaignsConfig = () => {
-  const classes = useStyles();
-
   const [settings, setSettings] = useState(initialSettings);
   const [showVariablesForm, setShowVariablesForm] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
@@ -123,24 +120,20 @@ const CampaignsConfig = () => {
         {i18n.t("campaigns.confirmationModal.deleteMessage")}
       </ConfirmationModal>
       <MainHeader>
-        <Grid style={{ width: "99.6%" }} container>
+        <Grid container>
           <Grid xs={12} item>
             <Title>{i18n.t("campaignsConfig.title")}</Title>
           </Grid>
         </Grid>
       </MainHeader>
-      <Paper className={classes.mainPaper} variant="outlined">
-        <Box className={classes.tabPanelsContainer}>
+      <MainPaper variant="outlined">
+        <TabPanelsContainer>
           <Grid spacing={2} container>
             <Grid xs={12} item>
               <Typography component={"h3"}>Intervalos</Typography>
             </Grid>
             <Grid xs={12} md={4} item>
-              <FormControl
-                variant="outlined"
-                className={classes.formControl}
-                fullWidth
-              >
+              <FormControl variant="outlined" fullWidth>
                 <InputLabel id="messageInterval-label">
                   Intervalo Randômico de Disparo
                 </InputLabel>
@@ -161,11 +154,7 @@ const CampaignsConfig = () => {
               </FormControl>
             </Grid>
             <Grid xs={12} md={4} item>
-              <FormControl
-                variant="outlined"
-                className={classes.formControl}
-                fullWidth
-              >
+              <FormControl variant="outlined" fullWidth>
                 <InputLabel id="longerIntervalAfter-label">
                   Intervalo Maior Após
                 </InputLabel>
@@ -193,11 +182,7 @@ const CampaignsConfig = () => {
               </FormControl>
             </Grid>
             <Grid xs={12} md={4} item>
-              <FormControl
-                variant="outlined"
-                className={classes.formControl}
-                fullWidth
-              >
+              <FormControl variant="outlined" fullWidth>
                 <InputLabel id="greaterInterval-label">
                   Intervalo de Disparo Maior
                 </InputLabel>
@@ -224,7 +209,7 @@ const CampaignsConfig = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid xs={12} className={classes.textRight} item>
+            <TextRight xs={12} item>
               <Button
                 onClick={() => setShowVariablesForm(!showVariablesForm)}
                 color="primary"
@@ -239,7 +224,7 @@ const CampaignsConfig = () => {
               >
                 Salvar Configurações
               </Button>
-            </Grid>
+            </TextRight>
             {showVariablesForm && (
               <>
                 <Grid xs={12} md={6} item>
@@ -254,7 +239,7 @@ const CampaignsConfig = () => {
                 </Grid>
                 <Grid xs={12} md={6} item>
                   <TextField
-                    label="Conteúdo"
+                    label="Valor"
                     variant="outlined"
                     value={variable.value}
                     name="value"
@@ -262,14 +247,7 @@ const CampaignsConfig = () => {
                     fullWidth
                   />
                 </Grid>
-                <Grid xs={12} className={classes.textRight} item>
-                  <Button
-                    onClick={() => setShowVariablesForm(!showVariablesForm)}
-                    color="primary"
-                    style={{ marginRight: 10 }}
-                  >
-                    Fechar
-                  </Button>
+                <Grid xs={12} item>
                   <Button
                     onClick={addVariable}
                     color="primary"
@@ -281,41 +259,40 @@ const CampaignsConfig = () => {
               </>
             )}
             {settings.variables.length > 0 && (
-              <Grid xs={12} className={classes.textRight} item>
+              <Grid xs={12} item>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell style={{ width: "1%" }}></TableCell>
                       <TableCell>Atalho</TableCell>
-                      <TableCell>Conteúdo</TableCell>
+                      <TableCell>Valor</TableCell>
+                      <TableCell align="right">Ações</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {Array.isArray(settings.variables) &&
-                      settings.variables.map((v, k) => (
-                        <TableRow key={k}>
-                          <TableCell>
-                            <IconButton
-                              size="small"
-                              onClick={() => {
-                                setSelectedKey(v.key);
-                                setConfirmationOpen(true);
-                              }}
-                            >
-                              <DeleteOutlineIcon />
-                            </IconButton>
-                          </TableCell>
-                          <TableCell>{"{" + v.key + "}"}</TableCell>
-                          <TableCell>{v.value}</TableCell>
-                        </TableRow>
-                      ))}
+                    {settings.variables.map((variable) => (
+                      <TableRow key={variable.key}>
+                        <TableCell>{variable.key}</TableCell>
+                        <TableCell>{variable.value}</TableCell>
+                        <TableCell align="right">
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setSelectedKey(variable.key);
+                              setConfirmationOpen(true);
+                            }}
+                          >
+                            <DeleteOutlineIcon />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </Grid>
             )}
           </Grid>
-        </Box>
-      </Paper>
+        </TabPanelsContainer>
+      </MainPaper>
     </MainContainer>
   );
 };

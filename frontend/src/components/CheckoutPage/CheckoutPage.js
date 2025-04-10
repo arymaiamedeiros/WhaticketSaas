@@ -6,7 +6,7 @@ import {
   Button,
   Typography,
   CircularProgress,
-} from "@material-ui/core";
+} from "@mui/material";
 import { Formik, Form } from "formik";
 
 import AddressForm from "./Forms/AddressForm";

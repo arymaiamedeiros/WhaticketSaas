@@ -1,47 +1,35 @@
 import React, { useState, useEffect } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { styled } from "@mui/material/styles";
+import { Box, Typography } from "@mui/material";
 
-const useStyles = makeStyles(theme => ({
-	timerBox: {
-		display: "flex",
-		marginLeft: 10,
-		marginRight: 10,
-		alignItems: "center",
-	},
+const TimerBox = styled(Box)(({ theme }) => ({
+	display: "flex",
+	alignItems: "center",
+	margin: "0 10px",
 }));
 
 const RecordingTimer = () => {
-	const classes = useStyles();
-	const initialState = {
-		minutes: 0,
-		seconds: 0,
-	};
-	const [timer, setTimer] = useState(initialState);
+	const [seconds, setSeconds] = useState(0);
 
 	useEffect(() => {
-		const interval = setInterval(
-			() =>
-				setTimer(prevState => {
-					if (prevState.seconds === 59) {
-						return { ...prevState, minutes: prevState.minutes + 1, seconds: 0 };
-					}
-					return { ...prevState, seconds: prevState.seconds + 1 };
-				}),
-			1000
-		);
-		return () => {
-			clearInterval(interval);
-		};
+		const interval = setInterval(() => {
+			setSeconds(prev => prev + 1);
+		}, 1000);
+		return () => clearInterval(interval);
 	}, []);
 
-	const addZero = n => {
-		return n < 10 ? "0" + n : n;
+	const formatTime = time => {
+		const minutes = Math.floor(time / 60);
+		const seconds = time % 60;
+		return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 	};
 
 	return (
-		<div className={classes.timerBox}>
-			<span>{`${addZero(timer.minutes)}:${addZero(timer.seconds)}`}</span>
-		</div>
+		<TimerBox>
+			<Typography variant="body2" color="textSecondary">
+				{formatTime(seconds)}
+			</Typography>
+		</TimerBox>
 	);
 };
 

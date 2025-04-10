@@ -1,290 +1,202 @@
 import React, { useState, useEffect } from "react";
+import { styled } from '@mui/material/styles';
 import {
-    makeStyles,
-    Paper,
-    Grid,
-    TextField,
-    Table,
-    TableHead,
-    TableBody,
-    TableCell,
-    TableRow,
-    IconButton
-} from "@material-ui/core";
-import { Formik, Form, Field } from 'formik';
-import ButtonWithSpinner from "../ButtonWithSpinner";
+  Paper,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  IconButton,
+  TextField,
+  InputAdornment,
+  Box,
+  Typography,
+  Chip
+} from "@mui/material";
+import {
+  Add as AddIcon,
+  Search as SearchIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon
+} from "@mui/icons-material";
+import { toast } from "react-toastify";
+import { i18n } from "../../translate/i18n";
+import api from "../../services/api";
+import toastError from "../../errors/toastError";
+import HelpModal from "./HelpModal";
 import ConfirmationModal from "../ConfirmationModal";
 
-import { Edit as EditIcon } from "@material-ui/icons";
-
-import { toast } from "react-toastify";
-import useHelps from "../../hooks/useHelps";
-
-
-const useStyles = makeStyles(theme => ({
-	root: {
-		width: '100%'
-	},
-    mainPaper: {
-		width: '100%',
-		flex: 1,
-		padding: theme.spacing(2)
-    },
-	fullWidth: {
-		width: '100%'
-	},
-    tableContainer: {
-		width: '100%',
-		overflowX: "scroll",
-		...theme.scrollbarStyles
-    },
-	textfield: {
-		width: '100%'
-	},
-    textRight: {
-        textAlign: 'right'
-    },
-    row: {
-		paddingTop: theme.spacing(2),
-		paddingBottom: theme.spacing(2)
-    },
-    control: {
-		paddingRight: theme.spacing(1),
-		paddingLeft: theme.spacing(1)
-	},
-    buttonContainer: {
-        textAlign: 'right',
-		padding: theme.spacing(1)
-	}
+const MainPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(2),
+  marginBottom: theme.spacing(2),
 }));
 
-export function HelpManagerForm (props) {
-    const { onSubmit, onDelete, onCancel, initialValue, loading } = props;
-    const classes = useStyles()
+const HelpsManager = () => {
+  const [helps, setHelps] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchParam, setSearchParam] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [selectedHelp, setSelectedHelp] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [helpToDelete, setHelpToDelete] = useState(null);
 
-    const [record, setRecord] = useState(initialValue);
+  useEffect(() => {
+    loadHelps();
+  }, []);
 
-    useEffect(() => {
-        setRecord(initialValue)
-    }, [initialValue])
-
-    const handleSubmit = async(data) => {
-        onSubmit(data)
+  const loadHelps = async () => {
+    try {
+      const { data } = await api.get("/helps");
+      setHelps(data);
+    } catch (err) {
+      toastError(err);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  const handleSearch = (event) => {
+    setSearchParam(event.target.value.toLowerCase());
+  };
+
+  const filteredHelps = helps.filter((help) => {
     return (
-        <Formik
-            enableReinitialize
-            className={classes.fullWidth}
-            initialValues={record}
-            onSubmit={(values, { resetForm }) =>
-                setTimeout(() => {
-                    handleSubmit(values)
-                    resetForm()
-                }, 500)
-            }
+      help.title.toLowerCase().includes(searchParam) ||
+      help.description?.toLowerCase().includes(searchParam) ||
+      help.category?.toLowerCase().includes(searchParam)
+    );
+  });
+
+  const handleOpenModal = () => {
+    setSelectedHelp(null);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedHelp(null);
+    setShowModal(false);
+  };
+
+  const handleEdit = (help) => {
+    setSelectedHelp(help);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (helpId) => {
+    try {
+      await api.delete(`/helps/${helpId}`);
+      toast.success(i18n.t("helpsManager.toasts.deleted"));
+      loadHelps();
+    } catch (err) {
+      toastError(err);
+    }
+    setHelpToDelete(null);
+    setShowDeleteModal(false);
+  };
+
+  return (
+    <MainPaper>
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+        <Typography variant="h5">
+          {i18n.t("helpsManager.title")}
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={handleOpenModal}
         >
-            {(values) => (
-                <Form className={classes.fullWidth}>
-                    <Grid spacing={2} justifyContent="flex-end" container>
-                        <Grid xs={12} sm={6} md={3} item>
-                            <Field
-                                as={TextField}
-                                label="Título"
-                                name="title"
-                                variant="outlined"
-                                className={classes.fullWidth}
-                                margin="dense"
-                            />
-                        </Grid>
-                        <Grid xs={12} sm={6} md={3} item>
-                            <Field
-                                as={TextField}
-                                label="Código do Vídeo"
-                                name="video"
-                                variant="outlined"
-                                className={classes.fullWidth}
-                                margin="dense"
-                            />
-                        </Grid>
-                        <Grid xs={12} sm={12} md={6} item>
-                            <Field
-                                as={TextField}
-                                label="Descrição"
-                                name="description"
-                                variant="outlined"
-                                className={classes.fullWidth}
-                                margin="dense"
-                            />
-                        </Grid>
-                        <Grid sm={3} md={1} item>
-                            <ButtonWithSpinner className={classes.fullWidth} loading={loading} onClick={() => onCancel()} variant="contained">
-                                Limpar
-                            </ButtonWithSpinner>
-                        </Grid>
-                        { record.id !== undefined ? (
-                            <Grid sm={3} md={1} item>
-                                <ButtonWithSpinner className={classes.fullWidth} loading={loading} onClick={() => onDelete(record)} variant="contained" color="secondary">
-                                    Excluir
-                                </ButtonWithSpinner>
-                            </Grid>
-                        ) : null}
-                        <Grid sm={3} md={1} item>
-                            <ButtonWithSpinner className={classes.fullWidth} loading={loading} type="submit" variant="contained" color="primary">
-                                Salvar
-                            </ButtonWithSpinner>
-                        </Grid>
-                    </Grid>
-                </Form>
-            )}
-        </Formik>
-    )
-}
+          {i18n.t("helpsManager.buttons.add")}
+        </Button>
+      </Box>
 
-export function HelpsManagerGrid (props) {
-    const { records, onSelect } = props
-    const classes = useStyles()
+      <TextField
+        fullWidth
+        placeholder={i18n.t("helpsManager.searchPlaceholder")}
+        type="search"
+        value={searchParam}
+        onChange={handleSearch}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          ),
+        }}
+        sx={{ mb: 2 }}
+      />
 
-    return (
-        <Paper className={classes.tableContainer}>
-            <Table className={classes.fullWidth} size="small" aria-label="a dense table">
-                <TableHead>
-                <TableRow>
-                    <TableCell align="center" style={{width: '1%'}}>#</TableCell>
-                    <TableCell align="left">Título</TableCell>
-                    <TableCell align="left">Descrição</TableCell>
-                    <TableCell align="left">Vídeo</TableCell>
-                </TableRow>
-                </TableHead>
-                <TableBody>
-                {records.map((row) => (
-                    <TableRow key={row.id}>
-                        <TableCell align="center" style={{width: '1%'}}>
-                            <IconButton onClick={() => onSelect(row)} aria-label="delete">
-                                <EditIcon />
-                            </IconButton>
-                        </TableCell>
-                        <TableCell align="left">{row.title || '-'}</TableCell>
-                        <TableCell align="left">{row.description || '-'}</TableCell>
-                        <TableCell align="left">{row.video || '-'}</TableCell>
-                    </TableRow>
-                ))}
-                </TableBody>
-            </Table>
-        </Paper>
-    )
-}
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>{i18n.t("helpsManager.table.title")}</TableCell>
+            <TableCell>{i18n.t("helpsManager.table.description")}</TableCell>
+            <TableCell>{i18n.t("helpsManager.table.category")}</TableCell>
+            <TableCell>{i18n.t("helpsManager.table.status")}</TableCell>
+            <TableCell align="right">
+              {i18n.t("helpsManager.table.actions")}
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {filteredHelps.map((help) => (
+            <TableRow key={help.id}>
+              <TableCell>{help.title}</TableCell>
+              <TableCell>{help.description}</TableCell>
+              <TableCell>{help.category}</TableCell>
+              <TableCell>
+                <Chip
+                  label={help.isActive ? i18n.t("helpsManager.status.active") : i18n.t("helpsManager.status.inactive")}
+                  color={help.isActive ? "success" : "error"}
+                  size="small"
+                />
+              </TableCell>
+              <TableCell align="right">
+                <IconButton
+                  size="small"
+                  onClick={() => handleEdit(help)}
+                  color="primary"
+                >
+                  <EditIcon />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    setHelpToDelete(help);
+                    setShowDeleteModal(true);
+                  }}
+                  color="error"
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
-export default function HelpsManager () {
-    const classes = useStyles()
-    const { list, save, update, remove } = useHelps()
-    
-    const [showConfirmDialog, setShowConfirmDialog] = useState(false)
-    const [loading, setLoading] = useState(false)
-    const [records, setRecords] = useState([])
-    const [record, setRecord] = useState({
-        title: '',
-        description: '',
-        video: ''
-    })
+      <HelpModal
+        open={showModal}
+        onClose={handleCloseModal}
+        help={selectedHelp}
+        onSave={loadHelps}
+      />
 
-    useEffect(() => {
-        async function fetchData () {
-            await loadHelps()
-        }
-        fetchData()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+      <ConfirmationModal
+        title={i18n.t("helpsManager.deleteModal.title")}
+        open={showDeleteModal}
+        onClose={() => {
+          setHelpToDelete(null);
+          setShowDeleteModal(false);
+        }}
+        onConfirm={() => handleDelete(helpToDelete?.id)}
+      >
+        {i18n.t("helpsManager.deleteModal.message")}
+      </ConfirmationModal>
+    </MainPaper>
+  );
+};
 
-    const loadHelps = async () => {
-        setLoading(true)
-        try {
-            const helpList = await list()
-            setRecords(helpList)
-        } catch (e) {
-            toast.error('Não foi possível carregar a lista de registros')
-        }
-        setLoading(false)
-    }
-
-    const handleSubmit = async (data) => {
-        setLoading(true)
-        try {
-            if (data.id !== undefined) {
-                await update(data)
-            } else {
-                await save(data)
-            }
-            await loadHelps()
-            handleCancel()
-            toast.success('Operação realizada com sucesso!')
-        } catch (e) {
-            toast.error('Não foi possível realizar a operação. Verifique se já existe uma helpo com o mesmo nome ou se os campos foram preenchidos corretamente')
-        }
-        setLoading(false)
-    }
-
-    const handleDelete = async () => {
-        setLoading(true)
-        try {
-            await remove(record.id)
-            await loadHelps()
-            handleCancel()
-            toast.success('Operação realizada com sucesso!')
-        } catch (e) {
-            toast.error('Não foi possível realizar a operação')
-        }
-        setLoading(false)
-    }
-
-    const handleOpenDeleteDialog = () => {
-        setShowConfirmDialog(true)
-    }
-
-    const handleCancel = () => {
-        setRecord({
-            title: '',
-            description: '',
-            video: ''
-        })
-    }
-
-    const handleSelect = (data) => {
-        setRecord({
-            id: data.id,
-            title: data.title || '',
-            description: data.description || '',
-            video: data.video || ''
-        })
-    }
-
-    return (
-        <Paper className={classes.mainPaper} elevation={0}>
-            <Grid spacing={2} container>
-                <Grid xs={12} item>
-                    <HelpManagerForm 
-                        initialValue={record} 
-                        onDelete={handleOpenDeleteDialog} 
-                        onSubmit={handleSubmit} 
-                        onCancel={handleCancel} 
-                        loading={loading}
-                    />
-                </Grid>
-                <Grid xs={12} item>
-                    <HelpsManagerGrid 
-                        records={records}
-                        onSelect={handleSelect}
-                    />
-                </Grid>
-            </Grid>
-            <ConfirmationModal
-                title="Exclusão de Registro"
-                open={showConfirmDialog}
-                onClose={() => setShowConfirmDialog(false)}
-                onConfirm={() => handleDelete()}
-            >
-                Deseja realmente excluir esse registro?
-            </ConfirmationModal>
-        </Paper>
-    )
-}
+export default HelpsManager;

@@ -1,63 +1,61 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-
 import * as Yup from "yup";
 import { Formik, Form, Field } from "formik";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
-
-import { makeStyles } from "@material-ui/core/styles";
-import { green } from "@material-ui/core/colors";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import { styled } from '@mui/material/styles';
+import { green } from '@mui/material/colors';
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import CircularProgress from "@mui/material/CircularProgress";
+import FormControl from "@mui/material/FormControl";
+import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
+import Autocomplete from "@mui/material/Autocomplete";
+import DeleteOutline from "@mui/icons-material/DeleteOutline";
+import AttachFile from "@mui/icons-material/AttachFile";
 
 import { i18n } from "../../translate/i18n";
-
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
-import { FormControl, Grid, IconButton } from "@material-ui/core";
-import Autocomplete from "@material-ui/lab/Autocomplete";
-import moment from "moment"
+import moment from "moment";
 import { AuthContext } from "../../context/Auth/AuthContext";
-import { isArray, capitalize } from "lodash";
-import DeleteOutline from "@material-ui/icons/DeleteOutline";
-import AttachFile from "@material-ui/icons/AttachFile";
-import { head } from "lodash";
+import { isArray, capitalize, head } from "lodash";
 import ConfirmationModal from "../ConfirmationModal";
 import MessageVariablesPicker from "../MessageVariablesPicker";
 
-const useStyles = makeStyles(theme => ({
-	root: {
-		display: "flex",
-		flexWrap: "wrap",
-	},
-	multFieldLine: {
-		display: "flex",
-		"& > *:not(:last-child)": {
-			marginRight: theme.spacing(1),
-		},
-	},
+const Root = styled('div')({
+	display: "flex",
+	flexWrap: "wrap",
+});
 
-	btnWrapper: {
-		position: "relative",
+const MultFieldLine = styled('div')(({ theme }) => ({
+	display: "flex",
+	"& > *:not(:last-child)": {
+		marginRight: theme.spacing(1),
 	},
+}));
 
-	buttonProgress: {
-		color: green[500],
-		position: "absolute",
-		top: "50%",
-		left: "50%",
-		marginTop: -12,
-		marginLeft: -12,
-	},
-	formControl: {
-		margin: theme.spacing(1),
-		minWidth: 120,
-	},
+const ButtonWrapper = styled('div')({
+	position: "relative",
+});
+
+const ButtonProgress = styled(CircularProgress)({
+	color: green[500],
+	position: "absolute",
+	top: "50%",
+	left: "50%",
+	marginTop: -12,
+	marginLeft: -12,
+});
+
+const StyledFormControl = styled(FormControl)(({ theme }) => ({
+	margin: theme.spacing(1),
+	minWidth: 120,
 }));
 
 const ScheduleSchema = Yup.object().shape({
@@ -69,7 +67,6 @@ const ScheduleSchema = Yup.object().shape({
 });
 
 const ScheduleModal = ({ open, onClose, scheduleId, contactId, cleanContact, reload }) => {
-	const classes = useStyles();
 	const history = useHistory();
 	const { user } = useContext(AuthContext);
 
@@ -183,6 +180,7 @@ const ScheduleModal = ({ open, onClose, scheduleId, contactId, cleanContact, rel
 		setSchedule(initialState);
 		handleClose();
 	};
+
 	const handleClickMsgVar = async (msgVar, setValueFunc) => {
 		const el = messageInputRef.current;
 		const firstHalfText = el.value.substring(0, el.selectionStart);
@@ -209,15 +207,13 @@ const ScheduleModal = ({ open, onClose, scheduleId, contactId, cleanContact, rel
 			}));
 			toast.success(i18n.t("scheduleModal.toasts.deleted"));
 			if (typeof reload == "function") {
-				console.log(reload);
-				console.log("1");
 				reload();
 			}
 		}
 	};
 
 	return (
-		<div className={classes.root}>
+		<Root>
 			<ConfirmationModal
 				title={i18n.t("scheduleModal.confirmationModal.deleteTitle")}
 				open={confirmationOpen}
@@ -255,94 +251,93 @@ const ScheduleModal = ({ open, onClose, scheduleId, contactId, cleanContact, rel
 						}, 400);
 					}}
 				>
-					{({ touched, errors, isSubmitting, values, setFieldValue }) => (
+					{({ values, errors, touched, isSubmitting, setFieldValue }) => (
 						<Form>
 							<DialogContent dividers>
-								<div className={classes.multFieldLine}>
-									<FormControl
-										variant="outlined"
-										fullWidth
-									>
-										<Autocomplete
+								<Grid container spacing={2}>
+									<Grid item xs={12}>
+										<Field
+											as={TextField}
+											label={i18n.t("scheduleModal.form.contact")}
+											name="contactId"
+											error={touched.contactId && Boolean(errors.contactId)}
+											helperText={touched.contactId && errors.contactId}
+											variant="outlined"
+											margin="dense"
 											fullWidth
-											value={currentContact}
-											options={contacts}
-											onChange={(e, contact) => {
-												const contactId = contact ? contact.id : '';
-												setSchedule({ ...schedule, contactId });
-												setCurrentContact(contact ? contact : initialContact);
+											select
+											SelectProps={{
+												native: true,
 											}}
-											getOptionLabel={(option) => option.name}
-											getOptionSelected={(option, value) => {
-												return value.id === option.id
-											}}
-											renderInput={(params) => <TextField {...params} variant="outlined" placeholder="Contato" />}
-										/>
-									</FormControl>
-								</div>
-								<br />
-								<div className={classes.multFieldLine}>
-									<Field
-										as={TextField}
-										rows={9}
-										multiline={true}
-										label={i18n.t("scheduleModal.form.body")}
-										name="body"
-										inputRef={messageInputRef}
-										error={touched.body && Boolean(errors.body)}
-										helperText={touched.body && errors.body}
-										variant="outlined"
-										margin="dense"
-										fullWidth
-									/>
-								</div>
-								<Grid item>
-									<MessageVariablesPicker
-										disabled={isSubmitting}
-										onClick={value => handleClickMsgVar(value, setFieldValue)}
-									/>
-								</Grid>
-								<br />
-								<div className={classes.multFieldLine}>
-									<Field
-										as={TextField}
-										label={i18n.t("scheduleModal.form.sendAt")}
-										type="datetime-local"
-										name="sendAt"
-										InputLabelProps={{
-											shrink: true,
-										}}
-										error={touched.sendAt && Boolean(errors.sendAt)}
-										helperText={touched.sendAt && errors.sendAt}
-										variant="outlined"
-										fullWidth
-									/>
-								</div>
-								{(schedule.mediaPath || attachment) && (
-									<Grid xs={12} item>
-										<Button startIcon={<AttachFile />}>
-											{attachment ? attachment.name : schedule.mediaName}
-										</Button>
-										<IconButton
-											onClick={() => setConfirmationOpen(true)}
-											color="secondary"
 										>
-											<DeleteOutline color="secondary" />
-										</IconButton>
+											{contacts.map((contact) => (
+												<option key={contact.id} value={contact.id}>
+													{contact.name}
+												</option>
+											))}
+										</Field>
 									</Grid>
-								)}
+									<Grid item xs={12}>
+										<Field
+											as={TextField}
+											label={i18n.t("scheduleModal.form.sendAt")}
+											name="sendAt"
+											type="datetime-local"
+											error={touched.sendAt && Boolean(errors.sendAt)}
+											helperText={touched.sendAt && errors.sendAt}
+											variant="outlined"
+											margin="dense"
+											fullWidth
+											InputLabelProps={{
+												shrink: true,
+											}}
+										/>
+									</Grid>
+									<Grid item xs={12}>
+										<MultFieldLine>
+											<Field
+												as={TextField}
+												label={i18n.t("scheduleModal.form.message")}
+												name="body"
+												error={touched.body && Boolean(errors.body)}
+												helperText={touched.body && errors.body}
+												variant="outlined"
+												margin="dense"
+												fullWidth
+												multiline
+												rows={4}
+												inputRef={messageInputRef}
+											/>
+											<MessageVariablesPicker
+												onSelect={(msgVar) => handleClickMsgVar(msgVar, setFieldValue)}
+											/>
+										</MultFieldLine>
+									</Grid>
+									<Grid item xs={12}>
+										<MultFieldLine>
+											<Button
+												variant="outlined"
+												color="primary"
+												onClick={() => attachmentFile.current.click()}
+												startIcon={<AttachFile />}
+											>
+												{i18n.t("scheduleModal.form.attach")}
+											</Button>
+											{(attachment || schedule.mediaPath) && (
+												<Button
+													variant="outlined"
+													color="secondary"
+													onClick={() => setConfirmationOpen(true)}
+													startIcon={<DeleteOutline />}
+												>
+													{i18n.t("scheduleModal.form.remove")}
+												</Button>
+											)}
+										</MultFieldLine>
+									</Grid>
+								</Grid>
 							</DialogContent>
 							<DialogActions>
-								{!attachment && !schedule.mediaPath && (
-									<Button
-										color="primary"
-										onClick={() => attachmentFile.current.click()}
-										disabled={isSubmitting}
-										variant="outlined"
-									>
-										{i18n.t("quickMessages.buttons.attach")}
-									</Button>
-								)}
 								<Button
 									onClick={handleClose}
 									color="secondary"
@@ -351,31 +346,23 @@ const ScheduleModal = ({ open, onClose, scheduleId, contactId, cleanContact, rel
 								>
 									{i18n.t("scheduleModal.buttons.cancel")}
 								</Button>
-								{(schedule.sentAt === null || schedule.sentAt === "") && (
+								<ButtonWrapper>
 									<Button
 										type="submit"
 										color="primary"
 										disabled={isSubmitting}
 										variant="contained"
-										className={classes.btnWrapper}
 									>
-										{scheduleId
-											? `${i18n.t("scheduleModal.buttons.okEdit")}`
-											: `${i18n.t("scheduleModal.buttons.okAdd")}`}
-										{isSubmitting && (
-											<CircularProgress
-												size={24}
-												className={classes.buttonProgress}
-											/>
-										)}
+										{i18n.t("scheduleModal.buttons.ok")}
 									</Button>
-								)}
+									{isSubmitting && <ButtonProgress size={24} />}
+								</ButtonWrapper>
 							</DialogActions>
 						</Form>
 					)}
 				</Formik>
 			</Dialog>
-		</div>
+		</Root>
 	);
 };
 

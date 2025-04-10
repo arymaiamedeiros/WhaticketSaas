@@ -8,24 +8,27 @@ import React, {
 
 import { toast } from "react-toastify";
 import { useParams, useHistory } from "react-router-dom";
-
-import { makeStyles } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
-import SearchIcon from "@material-ui/icons/Search";
-import TextField from "@material-ui/core/TextField";
-import InputAdornment from "@material-ui/core/InputAdornment";
-
-import IconButton from "@material-ui/core/IconButton";
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
-import EditIcon from "@material-ui/icons/Edit";
-import CheckCircleIcon from "@material-ui/icons/CheckCircle";
-import BlockIcon from "@material-ui/icons/Block";
+import { styled } from '@mui/material/styles';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  TextField,
+  InputAdornment,
+  IconButton,
+  Grid,
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  DeleteOutline as DeleteOutlineIcon,
+  Edit as EditIcon,
+  CheckCircle as CheckCircleIcon,
+  Block as BlockIcon,
+} from '@mui/icons-material';
 
 import api from "../../services/api";
 import TableRowSkeleton from "../../components/TableRowSkeleton";
@@ -40,10 +43,16 @@ import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { Can } from "../../components/Can";
 import useContactLists from "../../hooks/useContactLists";
-import { Grid } from "@material-ui/core";
 
 import planilhaExemplo from "../../assets/planilha.xlsx";
 import { socketConnection } from "../../services/socket";
+
+const MainPaper = styled(Paper)(({ theme }) => ({
+  flex: 1,
+  padding: theme.spacing(1),
+  overflowY: "scroll",
+  ...theme.scrollbarStyles,
+}));
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_CONTACTS") {
@@ -89,18 +98,7 @@ const reducer = (state, action) => {
   }
 };
 
-const useStyles = makeStyles((theme) => ({
-  mainPaper: {
-    flex: 1,
-    padding: theme.spacing(1),
-    overflowY: "scroll",
-    ...theme.scrollbarStyles,
-  },
-}));
-
 const ContactListItems = () => {
-  const classes = useStyles();
-
   const { user } = useContext(AuthContext);
   const { contactListId } = useParams();
   const history = useHistory();
@@ -110,8 +108,7 @@ const ContactListItems = () => {
   const [searchParam, setSearchParam] = useState("");
   const [contacts, dispatch] = useReducer(reducer, []);
   const [selectedContactId, setSelectedContactId] = useState(null);
-  const [contactListItemModalOpen, setContactListItemModalOpen] =
-    useState(false);
+  const [contactListItemModalOpen, setContactListItemModalOpen] = useState(false);
   const [deletingContact, setDeletingContact] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [hasMore, setHasMore] = useState(false);
@@ -246,51 +243,38 @@ const ContactListItems = () => {
   };
 
   return (
-    <MainContainer className={classes.mainContainer}>
+    <MainContainer>
+      <ConfirmationModal
+        title={
+          deletingContact &&
+          `${i18n.t("contacts.confirmationModal.deleteTitle")} ${
+            deletingContact.name
+          }?`
+        }
+        open={confirmOpen}
+        onClose={setConfirmOpen}
+        onConfirm={() => handleDeleteContact(deletingContact.id)}
+      >
+        {i18n.t("contacts.confirmationModal.deleteMessage")}
+      </ConfirmationModal>
       <ContactListItemModal
         open={contactListItemModalOpen}
         onClose={handleCloseContactListItemModal}
         aria-labelledby="form-dialog-title"
         contactId={selectedContactId}
-      ></ContactListItemModal>
-      <ConfirmationModal
-        title={
-          deletingContact
-            ? `${i18n.t("contactListItems.confirmationModal.deleteTitle")} ${
-                deletingContact.name
-              }?`
-            : `${i18n.t("contactListItems.confirmationModal.importTitlte")}`
-        }
-        open={confirmOpen}
-        onClose={setConfirmOpen}
-        onConfirm={() =>
-          deletingContact
-            ? handleDeleteContact(deletingContact.id)
-            : handleImportContacts()
-        }
-      >
-        {deletingContact ? (
-          `${i18n.t("contactListItems.confirmationModal.deleteMessage")}`
-        ) : (
-          <>
-            {i18n.t("contactListItems.confirmationModal.importMessage")}
-            <a href={planilhaExemplo} download="planilha.xlsx">
-              Clique aqui para baixar planilha exemplo.
-            </a>
-          </>
-        )}
-      </ConfirmationModal>
+        contactListId={contactListId}
+      />
       <MainHeader>
-        <Grid style={{ width: "99.6%" }} container>
-          <Grid xs={12} sm={5} item>
+        <Grid container sx={{ width: "99.6%" }}>
+          <Grid item xs={12} sm={8}>
             <Title>{contactList.name}</Title>
           </Grid>
-          <Grid xs={12} sm={7} item>
-            <Grid spacing={2} container>
-              <Grid xs={12} sm={6} item>
+          <Grid item xs={12} sm={4}>
+            <Grid container spacing={2}>
+              <Grid item xs={7} sm={6}>
                 <TextField
                   fullWidth
-                  placeholder={i18n.t("contactListItems.searchPlaceholder")}
+                  placeholder={i18n.t("contacts.searchPlaceholder")}
                   type="search"
                   value={searchParam}
                   onChange={handleSearch}
@@ -301,78 +285,31 @@ const ContactListItems = () => {
                       </InputAdornment>
                     ),
                   }}
+                  size="small"
                 />
               </Grid>
-              <Grid xs={4} sm={2} item>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  onClick={goToContactLists}
-                >
-                  {i18n.t("contactListItems.buttons.lists")}
-                </Button>
-              </Grid>
-              <Grid xs={4} sm={2} item>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  onClick={() => {
-                    fileUploadRef.current.value = null;
-                    fileUploadRef.current.click();
-                  }}
-                >
-                  {i18n.t("contactListItems.buttons.import")}
-                </Button>
-              </Grid>
-              <Grid xs={4} sm={2} item>
+              <Grid item xs={5} sm={6}>
                 <Button
                   fullWidth
                   variant="contained"
                   color="primary"
                   onClick={handleOpenContactListItemModal}
                 >
-                  {i18n.t("contactListItems.buttons.add")}
+                  {i18n.t("contacts.buttons.add")}
                 </Button>
               </Grid>
             </Grid>
           </Grid>
         </Grid>
       </MainHeader>
-      <Paper
-        className={classes.mainPaper}
-        variant="outlined"
-        onScroll={handleScroll}
-      >
-        <>
-          <input
-            style={{ display: "none" }}
-            id="upload"
-            name="file"
-            type="file"
-            accept=".xls,.xlsx"
-            onChange={() => {
-              setConfirmOpen(true);
-            }}
-            ref={fileUploadRef}
-          />
-        </>
+      <MainPaper variant="outlined" onScroll={handleScroll}>
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell align="center" style={{ width: "0%" }}>
-                #
-              </TableCell>
-              <TableCell>{i18n.t("contactListItems.table.name")}</TableCell>
+              <TableCell>{i18n.t("contacts.table.name")}</TableCell>
+              <TableCell>{i18n.t("contacts.table.number")}</TableCell>
               <TableCell align="center">
-                {i18n.t("contactListItems.table.number")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("contactListItems.table.email")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("contactListItems.table.actions")}
+                {i18n.t("contacts.table.actions")}
               </TableCell>
             </TableRow>
           </TableHead>
@@ -380,24 +317,8 @@ const ContactListItems = () => {
             <>
               {contacts.map((contact) => (
                 <TableRow key={contact.id}>
-                  <TableCell align="center" style={{ width: "0%" }}>
-                    <IconButton>
-                      {contact.isWhatsappValid ? (
-                        <CheckCircleIcon
-                          titleAccess="Whatsapp Válido"
-                          htmlColor="green"
-                        />
-                      ) : (
-                        <BlockIcon
-                          titleAccess="Whatsapp Inválido"
-                          htmlColor="grey"
-                        />
-                      )}
-                    </IconButton>
-                  </TableCell>
                   <TableCell>{contact.name}</TableCell>
-                  <TableCell align="center">{contact.number}</TableCell>
-                  <TableCell align="center">{contact.email}</TableCell>
+                  <TableCell>{contact.number}</TableCell>
                   <TableCell align="center">
                     <IconButton
                       size="small"
@@ -405,29 +326,23 @@ const ContactListItems = () => {
                     >
                       <EditIcon />
                     </IconButton>
-                    <Can
-                      role={user.profile}
-                      perform="contacts-page:deleteContact"
-                      yes={() => (
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            setConfirmOpen(true);
-                            setDeletingContact(contact);
-                          }}
-                        >
-                          <DeleteOutlineIcon />
-                        </IconButton>
-                      )}
-                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        setDeletingContact(contact);
+                        setConfirmOpen(true);
+                      }}
+                    >
+                      <DeleteOutlineIcon />
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))}
-              {loading && <TableRowSkeleton columns={4} />}
+              {loading && <TableRowSkeleton columns={3} />}
             </>
           </TableBody>
         </Table>
-      </Paper>
+      </MainPaper>
     </MainContainer>
   );
 };

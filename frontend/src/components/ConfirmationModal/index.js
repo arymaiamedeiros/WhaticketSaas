@@ -1,16 +1,31 @@
 import React from "react";
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import Typography from "@material-ui/core/Typography";
-
+import { styled } from "@mui/material/styles";
+import {
+	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	Typography
+} from "@mui/material";
 import { i18n } from "../../translate/i18n";
+
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+	"& .MuiDialog-paper": {
+		minWidth: 400,
+		[theme.breakpoints.down("sm")]: {
+			minWidth: "auto"
+		}
+	}
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+	margin: theme.spacing(1)
+}));
 
 const ConfirmationModal = ({ title, children, open, onClose, onConfirm }) => {
 	return (
-		<Dialog
+		<StyledDialog
 			open={open}
 			onClose={() => onClose(false)}
 			aria-labelledby="confirm-dialog"
@@ -20,14 +35,14 @@ const ConfirmationModal = ({ title, children, open, onClose, onConfirm }) => {
 				<Typography>{children}</Typography>
 			</DialogContent>
 			<DialogActions>
-				<Button
+				<StyledButton
 					variant="contained"
 					onClick={() => onClose(false)}
-					color="default"
+					color="inherit"
 				>
 					{i18n.t("confirmationModal.buttons.cancel")}
-				</Button>
-				<Button
+				</StyledButton>
+				<StyledButton
 					variant="contained"
 					onClick={() => {
 						onClose(false);
@@ -36,9 +51,9 @@ const ConfirmationModal = ({ title, children, open, onClose, onConfirm }) => {
 					color="secondary"
 				>
 					{i18n.t("confirmationModal.buttons.confirm")}
-				</Button>
+				</StyledButton>
 			</DialogActions>
-		</Dialog>
+		</StyledDialog>
 	);
 };
 

@@ -1,76 +1,69 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-
 import * as Yup from "yup";
 import { Formik, Form, Field } from "formik";
 import { toast } from "react-toastify";
 import { head } from "lodash";
-
-import { makeStyles } from "@material-ui/core/styles";
-import { green } from "@material-ui/core/colors";
-import Button from "@material-ui/core/Button";
-import IconButton from "@material-ui/core/IconButton";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import AttachFileIcon from "@material-ui/icons/AttachFile";
-import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
+import { styled } from '@mui/material/styles';
+import { green } from '@mui/material/colors';
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import CircularProgress from "@mui/material/CircularProgress";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import Box from "@mui/material/Box";
+import FormControl from "@mui/material/FormControl";
+import Grid from "@mui/material/Grid";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 
 import { i18n } from "../../translate/i18n";
 import moment from "moment";
-
 import api from "../../services/api";
 import toastError from "../../errors/toastError";
-import {
-  Box,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  Tab,
-  Tabs,
-} from "@material-ui/core";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import ConfirmationModal from "../ConfirmationModal";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
+const Root = styled('div')({
     display: "flex",
     flexWrap: "wrap",
     backgroundColor: "#fff"
-  },
+});
 
-  tabmsg: {
+const TabContainer = styled(Box)(({ theme }) => ({
     backgroundColor: theme.palette.campaigntab,
-  },
+}));
 
-  textField: {
+const StyledTextField = styled(TextField)(({ theme }) => ({
     marginRight: theme.spacing(1),
     flex: 1,
-  },
+}));
 
-  extraAttr: {
+const ExtraAttr = styled('div')({
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-  },
+});
 
-  btnWrapper: {
+const ButtonWrapper = styled('div')({
     position: "relative",
-  },
+});
 
-  buttonProgress: {
+const ButtonProgress = styled(CircularProgress)({
     color: green[500],
     position: "absolute",
     top: "50%",
     left: "50%",
     marginTop: -12,
     marginLeft: -12,
-  },
-}));
+});
 
 const CampaignSchema = Yup.object().shape({
   name: Yup.string()
@@ -87,7 +80,6 @@ const CampaignModal = ({
   onSave,
   resetPagination,
 }) => {
-  const classes = useStyles();
   const isMounted = useRef(true);
   const { user } = useContext(AuthContext);
   const { companyId } = user;
@@ -329,38 +321,32 @@ const CampaignModal = ({
   };
 
   return (
-    <div className={classes.root}>
+    <Root>
       <ConfirmationModal
-        title={i18n.t("campaigns.confirmationModal.deleteTitle")}
+        title={i18n.t("campaignModal.confirmationModal.deleteTitle")}
         open={confirmationOpen}
         onClose={() => setConfirmationOpen(false)}
         onConfirm={deleteMedia}
       >
-        {i18n.t("campaigns.confirmationModal.deleteMessage")}
+        {i18n.t("campaignModal.confirmationModal.deleteMessage")}
       </ConfirmationModal>
       <Dialog
         open={open}
         onClose={handleClose}
-        fullWidth
         maxWidth="md"
+        fullWidth
         scroll="paper"
       >
         <DialogTitle id="form-dialog-title">
-          {campaignEditable ? (
-            <>
-              {campaignId
-                ? `${i18n.t("campaigns.dialog.update")}`
-                : `${i18n.t("campaigns.dialog.new")}`}
-            </>
-          ) : (
-            <>{`${i18n.t("campaigns.dialog.readonly")}`}</>
-          )}
+          {i18n.t("campaignModal.title")}
         </DialogTitle>
         <div style={{ display: "none" }}>
           <input
             type="file"
+            id="button-file"
+            accept=".pdf,.csv,.xlsx,.xls,image/*,.doc,.docx,.ppt,.pptx,.txt,.zip"
             ref={attachmentFile}
-            onChange={(e) => handleAttachmentFile(e)}
+            onChange={handleAttachmentFile}
           />
         </div>
         <Formik
@@ -377,394 +363,179 @@ const CampaignModal = ({
           {({ values, errors, touched, isSubmitting }) => (
             <Form>
               <DialogContent dividers>
-                <Grid spacing={2} container>
-                  <Grid xs={12} md={9} item>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
                     <Field
-                      as={TextField}
-                      label={i18n.t("campaigns.dialog.form.name")}
+                      as={StyledTextField}
+                      label={i18n.t("campaignModal.form.name")}
                       name="name"
                       error={touched.name && Boolean(errors.name)}
                       helperText={touched.name && errors.name}
                       variant="outlined"
                       margin="dense"
                       fullWidth
-                      className={classes.textField}
                       disabled={!campaignEditable}
                     />
                   </Grid>
-                  <Grid xs={12} md={3} item>
-                    <FormControl
-                      variant="outlined"
-                      margin="dense"
-                      fullWidth
-                      className={classes.formControl}
-                    >
-                      <InputLabel id="confirmation-selection-label">
-                        {i18n.t("campaigns.dialog.form.confirmation")}
-                      </InputLabel>
-                      <Field
-                        as={Select}
-                        label={i18n.t("campaigns.dialog.form.confirmation")}
-                        placeholder={i18n.t(
-                          "campaigns.dialog.form.confirmation"
-                        )}
-                        labelId="confirmation-selection-label"
-                        id="confirmation"
-                        name="confirmation"
-                        error={
-                          touched.confirmation && Boolean(errors.confirmation)
-                        }
-                        disabled={!campaignEditable}
+                  <Grid item xs={12}>
+                    <TabContainer>
+                      <Tabs
+                        value={messageTab}
+                        onChange={(_, newValue) => setMessageTab(newValue)}
+                        variant="scrollable"
+                        scrollButtons="auto"
                       >
-                        <MenuItem value={false}>Desabilitada</MenuItem>
-                        <MenuItem value={true}>Habilitada</MenuItem>
-                      </Field>
-                    </FormControl>
+                        <Tab label={i18n.t("campaignModal.form.message1")} />
+                        <Tab label={i18n.t("campaignModal.form.message2")} />
+                        <Tab label={i18n.t("campaignModal.form.message3")} />
+                        <Tab label={i18n.t("campaignModal.form.message4")} />
+                        <Tab label={i18n.t("campaignModal.form.message5")} />
+                      </Tabs>
+                    </TabContainer>
+                    {renderMessageField(messageTab + 1)}
                   </Grid>
-                  <Grid xs={12} md={4} item>
-                    <FormControl
+                  <Grid item xs={12}>
+                    <Field
+                      as={FormControl}
                       variant="outlined"
                       margin="dense"
                       fullWidth
-                      className={classes.formControl}
                     >
-                      <InputLabel id="contactList-selection-label">
-                        {i18n.t("campaigns.dialog.form.contactList")}
+                      <InputLabel>
+                        {i18n.t("campaignModal.form.whatsapp")}
                       </InputLabel>
-                      <Field
-                        as={Select}
-                        label={i18n.t("campaigns.dialog.form.contactList")}
-                        placeholder={i18n.t(
-                          "campaigns.dialog.form.contactList"
-                        )}
-                        labelId="contactList-selection-label"
-                        id="contactListId"
-                        name="contactListId"
-                        error={
-                          touched.contactListId && Boolean(errors.contactListId)
-                        }
-                        disabled={!campaignEditable}
-                      >
-                        <MenuItem value="">Nenhuma</MenuItem>
-                        {contactLists &&
-                          contactLists.map((contactList) => (
-                            <MenuItem
-                              key={contactList.id}
-                              value={contactList.id}
-                            >
-                              {contactList.name}
-                            </MenuItem>
-                          ))}
-                      </Field>
-                    </FormControl>
-                  </Grid>
-                  <Grid xs={12} md={4} item>
-                    <FormControl
-                      variant="outlined"
-                      margin="dense"
-                      fullWidth
-                      className={classes.formControl}
-                    >
-                      <InputLabel id="tagList-selection-label">
-                        {i18n.t("campaigns.dialog.form.tagList")}
-                      </InputLabel>
-                      <Field
-                        as={Select}
-                        label={i18n.t("campaigns.dialog.form.tagList")}
-                        placeholder={i18n.t("campaigns.dialog.form.tagList")}
-                        labelId="tagList-selection-label"
-                        id="tagListId"
-                        name="tagListId"
-                        error={touched.tagListId && Boolean(errors.tagListId)}
-                        disabled={!campaignEditable}
-                      >
-                        <MenuItem value="">Nenhuma</MenuItem>
-                        {Array.isArray(tagLists) &&
-                          tagLists.map((tagList) => (
-                            <MenuItem key={tagList.id} value={tagList.id}>
-                              {tagList.name}
-                            </MenuItem>
-                          ))}
-                      </Field>
-                    </FormControl>
-                  </Grid>
-                  <Grid xs={12} md={4} item>
-                    <FormControl
-                      variant="outlined"
-                      margin="dense"
-                      fullWidth
-                      className={classes.formControl}
-                    >
-                      <InputLabel id="whatsapp-selection-label">
-                        {i18n.t("campaigns.dialog.form.whatsapp")}
-                      </InputLabel>
-                      <Field
-                        as={Select}
-                        label={i18n.t("campaigns.dialog.form.whatsapp")}
-                        placeholder={i18n.t("campaigns.dialog.form.whatsapp")}
-                        labelId="whatsapp-selection-label"
-                        id="whatsappId"
+                      <Select
                         name="whatsappId"
-                        error={touched.whatsappId && Boolean(errors.whatsappId)}
+                        value={values.whatsappId}
+                        label={i18n.t("campaignModal.form.whatsapp")}
                         disabled={!campaignEditable}
                       >
-                        <MenuItem value="">Nenhuma</MenuItem>
-                        {whatsapps &&
-                          whatsapps.map((whatsapp) => (
-                            <MenuItem key={whatsapp.id} value={whatsapp.id}>
-                              {whatsapp.name}
-                            </MenuItem>
-                          ))}
-                      </Field>
-                    </FormControl>
+                        {whatsapps.map((whatsapp) => (
+                          <MenuItem key={whatsapp.id} value={whatsapp.id}>
+                            {whatsapp.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </Field>
                   </Grid>
-                  <Grid xs={12} md={4} item>
+                  <Grid item xs={12}>
+                    <Field
+                      as={FormControl}
+                      variant="outlined"
+                      margin="dense"
+                      fullWidth
+                    >
+                      <InputLabel>
+                        {i18n.t("campaignModal.form.contactList")}
+                      </InputLabel>
+                      <Select
+                        name="contactListId"
+                        value={values.contactListId}
+                        label={i18n.t("campaignModal.form.contactList")}
+                        disabled={!campaignEditable}
+                      >
+                        {contactLists.map((contactList) => (
+                          <MenuItem key={contactList.id} value={contactList.id}>
+                            {contactList.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </Field>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Field
+                      as={FormControl}
+                      variant="outlined"
+                      margin="dense"
+                      fullWidth
+                    >
+                      <InputLabel>
+                        {i18n.t("campaignModal.form.tagList")}
+                      </InputLabel>
+                      <Select
+                        name="tagListId"
+                        value={values.tagListId}
+                        label={i18n.t("campaignModal.form.tagList")}
+                        disabled={!campaignEditable}
+                      >
+                        <MenuItem value="Nenhuma">
+                          {i18n.t("campaignModal.form.noTag")}
+                        </MenuItem>
+                        {tagLists.map((tag) => (
+                          <MenuItem key={tag.id} value={tag.id}>
+                            {tag.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </Field>
+                  </Grid>
+                  <Grid item xs={12}>
                     <Field
                       as={TextField}
-                      label={i18n.t("campaigns.dialog.form.scheduledAt")}
+                      label={i18n.t("campaignModal.form.scheduledAt")}
                       name="scheduledAt"
-                      error={touched.scheduledAt && Boolean(errors.scheduledAt)}
-                      helperText={touched.scheduledAt && errors.scheduledAt}
+                      type="datetime-local"
                       variant="outlined"
                       margin="dense"
-                      type="datetime-local"
+                      fullWidth
                       InputLabelProps={{
                         shrink: true,
                       }}
-                      fullWidth
-                      className={classes.textField}
                       disabled={!campaignEditable}
                     />
                   </Grid>
-                  <Grid xs={12} md={4} item>
-                  <FormControl
-                      variant="outlined"
-                      margin="dense"
-                      className={classes.FormControl}
-                      fullWidth
-                    >
-                      <InputLabel id="fileListId-selection-label">{i18n.t("campaigns.dialog.form.fileList")}</InputLabel>
-                      <Field
-                        as={Select}
-                        label={i18n.t("campaigns.dialog.form.fileList")}
-                        name="fileListId"
-                        id="fileListId"
-                        placeholder={i18n.t("campaigns.dialog.form.fileList")}
-                        labelId="fileListId-selection-label"
-                        value={values.fileListId || ""}
+                  <Grid item xs={12}>
+                    <ExtraAttr>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => attachmentFile.current.click()}
+                        startIcon={<AttachFileIcon />}
+                        disabled={!campaignEditable}
                       >
-                        <MenuItem value={""} >{"Nenhum"}</MenuItem>
-                        {file.map(f => (
-                          <MenuItem key={f.id} value={f.id}>
-                            {f.name}
-                          </MenuItem>
-                        ))}
-                      </Field>
-                    </FormControl>
-                  </Grid>
-                  <Grid xs={12} item>
-                    <Tabs
-                      value={messageTab}
-                      indicatorColor="primary"
-                      textColor="primary"
-                      className={classes.tabmsg}
-                      onChange={(e, v) => setMessageTab(v)}
-                      variant="fullWidth"
-                      centered
-                      style={{
-                        borderRadius: 2,
-                      }}
-                    >
-                      <Tab label="Msg. 1" index={0} />
-                      <Tab label="Msg. 2" index={1} />
-                      <Tab label="Msg. 3" index={2} />
-                      <Tab label="Msg. 4" index={3} />
-                      <Tab label="Msg. 5" index={4} />
-                    </Tabs>
-                    <Box style={{ paddingTop: 20, border: "none" }}>
-                      {messageTab === 0 && (
-                        <>
-                          {values.confirmation ? (
-                            <Grid spacing={2} container>
-                              <Grid xs={12} md={8} item>
-                                <>{renderMessageField("message1")}</>
-                              </Grid>
-                              <Grid xs={12} md={4} item>
-                                <>
-                                  {renderConfirmationMessageField(
-                                    "confirmationMessage1"
-                                  )}
-                                </>
-                              </Grid>
-                            </Grid>
-                          ) : (
-                            <>{renderMessageField("message1")}</>
-                          )}
-                        </>
-                      )}
-                      {messageTab === 1 && (
-                        <>
-                          {values.confirmation ? (
-                            <Grid spacing={2} container>
-                              <Grid xs={12} md={8} item>
-                                <>{renderMessageField("message2")}</>
-                              </Grid>
-                              <Grid xs={12} md={4} item>
-                                <>
-                                  {renderConfirmationMessageField(
-                                    "confirmationMessage2"
-                                  )}
-                                </>
-                              </Grid>
-                            </Grid>
-                          ) : (
-                            <>{renderMessageField("message2")}</>
-                          )}
-                        </>
-                      )}
-                      {messageTab === 2 && (
-                        <>
-                          {values.confirmation ? (
-                            <Grid spacing={2} container>
-                              <Grid xs={12} md={8} item>
-                                <>{renderMessageField("message3")}</>
-                              </Grid>
-                              <Grid xs={12} md={4} item>
-                                <>
-                                  {renderConfirmationMessageField(
-                                    "confirmationMessage3"
-                                  )}
-                                </>
-                              </Grid>
-                            </Grid>
-                          ) : (
-                            <>{renderMessageField("message3")}</>
-                          )}
-                        </>
-                      )}
-                      {messageTab === 3 && (
-                        <>
-                          {values.confirmation ? (
-                            <Grid spacing={2} container>
-                              <Grid xs={12} md={8} item>
-                                <>{renderMessageField("message4")}</>
-                              </Grid>
-                              <Grid xs={12} md={4} item>
-                                <>
-                                  {renderConfirmationMessageField(
-                                    "confirmationMessage4"
-                                  )}
-                                </>
-                              </Grid>
-                            </Grid>
-                          ) : (
-                            <>{renderMessageField("message4")}</>
-                          )}
-                        </>
-                      )}
-                      {messageTab === 4 && (
-                        <>
-                          {values.confirmation ? (
-                            <Grid spacing={2} container>
-                              <Grid xs={12} md={8} item>
-                                <>{renderMessageField("message5")}</>
-                              </Grid>
-                              <Grid xs={12} md={4} item>
-                                <>
-                                  {renderConfirmationMessageField(
-                                    "confirmationMessage5"
-                                  )}
-                                </>
-                              </Grid>
-                            </Grid>
-                          ) : (
-                            <>{renderMessageField("message5")}</>
-                          )}
-                        </>
-                      )}
-                    </Box>
-                  </Grid>
-                  {(campaign.mediaPath || attachment) && (
-                    <Grid xs={12} item>
-                      <Button startIcon={<AttachFileIcon />}>
-                        {attachment != null
-                          ? attachment.name
-                          : campaign.mediaName}
+                        {i18n.t("campaignModal.form.attach")}
                       </Button>
-                      {campaignEditable && (
-                        <IconButton
-                          onClick={() => setConfirmationOpen(true)}
+                      {(attachment || campaign.mediaPath) && (
+                        <Button
+                          variant="outlined"
                           color="secondary"
+                          onClick={() => setConfirmationOpen(true)}
+                          startIcon={<DeleteOutlineIcon />}
+                          disabled={!campaignEditable}
                         >
-                          <DeleteOutlineIcon />
-                        </IconButton>
+                          {i18n.t("campaignModal.form.remove")}
+                        </Button>
                       )}
-                    </Grid>
-                  )}
+                    </ExtraAttr>
+                  </Grid>
                 </Grid>
               </DialogContent>
               <DialogActions>
-                {campaign.status === "CANCELADA" && (
-                  <Button
-                    color="primary"
-                    onClick={() => restartCampaign()}
-                    variant="outlined"
-                  >
-                    {i18n.t("campaigns.dialog.buttons.restart")}
-                  </Button>
-                )}
-                {campaign.status === "EM_ANDAMENTO" && (
-                  <Button
-                    color="primary"
-                    onClick={() => cancelCampaign()}
-                    variant="outlined"
-                  >
-                    {i18n.t("campaigns.dialog.buttons.cancel")}
-                  </Button>
-                )}
-                {!attachment && !campaign.mediaPath && campaignEditable && (
-                  <Button
-                    color="primary"
-                    onClick={() => attachmentFile.current.click()}
-                    disabled={isSubmitting}
-                    variant="outlined"
-                  >
-                    {i18n.t("campaigns.dialog.buttons.attach")}
-                  </Button>
-                )}
                 <Button
                   onClick={handleClose}
                   color="secondary"
                   disabled={isSubmitting}
                   variant="outlined"
                 >
-                  {i18n.t("campaigns.dialog.buttons.close")}
+                  {i18n.t("campaignModal.buttons.cancel")}
                 </Button>
-                {(campaignEditable || campaign.status === "CANCELADA") && (
+                <ButtonWrapper>
                   <Button
                     type="submit"
                     color="primary"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !campaignEditable}
                     variant="contained"
-                    className={classes.btnWrapper}
                   >
-                    {campaignId
-                      ? `${i18n.t("campaigns.dialog.buttons.edit")}`
-                      : `${i18n.t("campaigns.dialog.buttons.add")}`}
-                    {isSubmitting && (
-                      <CircularProgress
-                        size={24}
-                        className={classes.buttonProgress}
-                      />
-                    )}
+                    {i18n.t("campaignModal.buttons.ok")}
                   </Button>
-                )}
+                  {isSubmitting && <ButtonProgress size={24} />}
+                </ButtonWrapper>
               </DialogActions>
             </Form>
           )}
         </Formik>
       </Dialog>
-    </div>
+    </Root>
   );
 };
 

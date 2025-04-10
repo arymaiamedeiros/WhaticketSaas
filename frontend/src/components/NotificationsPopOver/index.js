@@ -1,19 +1,17 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-
 import { useHistory } from "react-router-dom";
 import { format } from "date-fns";
 import { socketConnection } from "../../services/socket";
-
 import useSound from "use-sound";
-
-import Popover from "@material-ui/core/Popover";
-import IconButton from "@material-ui/core/IconButton";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import { makeStyles } from "@material-ui/core/styles";
-import Badge from "@material-ui/core/Badge";
-import ChatIcon from "@material-ui/icons/Chat";
+import { styled } from '@mui/material/styles';
+import Popover from '@mui/material/Popover';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
+import Badge from '@mui/material/Badge';
+import ChatIcon from '@mui/icons-material/Chat';
+import Box from '@mui/material/Box';
 
 import TicketListItem from "../TicketListItemCustom";
 import useTickets from "../../hooks/useTickets";
@@ -22,29 +20,23 @@ import { AuthContext } from "../../context/Auth/AuthContext";
 import { i18n } from "../../translate/i18n";
 import toastError from "../../errors/toastError";
 
-const useStyles = makeStyles(theme => ({
-	tabContainer: {
-		overflowY: "auto",
-		maxHeight: 350,
-		...theme.scrollbarStyles,
-	},
-	popoverPaper: {
-		width: "100%",
-		maxWidth: 350,
-		marginLeft: theme.spacing(2),
-		marginRight: theme.spacing(1),
-		[theme.breakpoints.down("sm")]: {
-			maxWidth: 270,
-		},
-	},
-	noShadow: {
-		boxShadow: "none !important",
+const TabContainer = styled(Box)(({ theme }) => ({
+	overflowY: "auto",
+	maxHeight: 350,
+	...theme.scrollbarStyles,
+}));
+
+const PopoverPaper = styled(Box)(({ theme }) => ({
+	width: "100%",
+	maxWidth: 350,
+	marginLeft: theme.spacing(2),
+	marginRight: theme.spacing(1),
+	[theme.breakpoints.down("sm")]: {
+		maxWidth: 270,
 	},
 }));
 
 const NotificationsPopOver = (volume) => {
-	const classes = useStyles();
-
 	const history = useHistory();
 	const { user } = useContext(AuthContext);
 	const ticketIdUrl = +history.location.pathname.split("/")[2];
@@ -52,30 +44,23 @@ const NotificationsPopOver = (volume) => {
 	const anchorEl = useRef();
 	const [isOpen, setIsOpen] = useState(false);
 	const [notifications, setNotifications] = useState([]);
-
 	const [showPendingTickets, setShowPendingTickets] = useState(false);
-
 	const [, setDesktopNotifications] = useState([]);
-
 	const { tickets } = useTickets({ withUnreadMessages: "true" });
-
 	const [play] = useSound(alertSound, volume);
 	const soundAlertRef = useRef();
-
 	const historyRef = useRef(history);
 
 	useEffect(() => {
 		const fetchSettings = async () => {
 			try {
-
 				if (user.allTicket === "enable") {
 					setShowPendingTickets(true);
 				}
 			} catch (err) {
-			  	toastError(err);
+				toastError(err);
 			}
 		}
-	  
 		fetchSettings();
 	}, []);
 
@@ -95,11 +80,9 @@ const NotificationsPopOver = (volume) => {
 				setNotifications(tickets);
 			} else {
 				const newNotifications = tickets.filter(ticket => ticket.status !== "pending");
-
 				setNotifications(newNotifications);
 			}
 		}
-
 		processNotifications();
 	}, [tickets]);
 
@@ -189,7 +172,6 @@ const NotificationsPopOver = (volume) => {
 			e.preventDefault();
 			window.focus();
 			historyRef.current.push(`/tickets/${ticket.uuid}`);
-			// handleChangeTab(null, ticket.isGroup? "group" : "open");
 		};
 
 		setDesktopNotifications(prevState => {
@@ -225,7 +207,7 @@ const NotificationsPopOver = (volume) => {
 				ref={anchorEl}
 				aria-label="Open Notifications"
 				color="inherit"
-				style={{color:"white"}}
+				sx={{ color: "white" }}
 			>
 				<Badge overlap="rectangular" badgeContent={notifications.length} color="secondary">
 					<ChatIcon />
@@ -243,13 +225,23 @@ const NotificationsPopOver = (volume) => {
 					vertical: "top",
 					horizontal: "right",
 				}}
-				classes={{ paper: classes.popoverPaper }}
 				onClose={handleClickAway}
+				PaperProps={{
+					sx: {
+						width: "100%",
+						maxWidth: 350,
+						ml: 2,
+						mr: 1,
+						'@media (max-width: 600px)': {
+							maxWidth: 270,
+						}
+					}
+				}}
 			>
-				<List dense className={classes.tabContainer}>
+				<List dense component={TabContainer}>
 					{notifications.length === 0 ? (
 						<ListItem>
-							<ListItemText>{i18n.t("notifications.noTickets")}</ListItemText>
+							<ListItemText primary={i18n.t("notifications.noTickets")} />
 						</ListItem>
 					) : (
 						notifications.map(ticket => (

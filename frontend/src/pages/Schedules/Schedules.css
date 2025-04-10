@@ -1,22 +1,147 @@
+/* Estilos para o calendário */
+.rbc-calendar {
+  min-height: 600px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para os eventos */
+.rbc-event {
+  background-color: #1380D6;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.rbc-event:hover {
+  background-color: #0d6ebd;
+  transform: scale(1.02);
+}
+
+/* Estilos para o cabeçalho do calendário */
+.rbc-toolbar {
+  margin-bottom: 16px;
+}
+
+.rbc-toolbar button {
+  color: #1380D6;
+  border: 1px solid #1380D6;
+  background-color: transparent;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.rbc-toolbar button:hover {
+  background-color: #1380D6;
+  color: white;
+}
+
+.rbc-toolbar button.rbc-active {
+  background-color: #1380D6;
+  color: white;
+}
+
+/* Estilos para as células do calendário */
+.rbc-month-view,
+.rbc-time-view,
+.rbc-agenda-view {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.rbc-day-bg + .rbc-day-bg,
+.rbc-month-row + .rbc-month-row {
+  border-left: 1px solid #e0e0e0;
+}
+
+.rbc-header {
+  padding: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Estilos para o dia atual */
+.rbc-today {
+  background-color: rgba(19, 128, 214, 0.1);
+}
+
+/* Estilos para o modo escuro */
+@media (prefers-color-scheme: dark) {
+  .rbc-calendar {
+    background-color: #1e1e1e;
+    color: #fff;
+  }
+
+  .rbc-header {
+    color: #fff;
+  }
+
+  .rbc-month-view,
+  .rbc-time-view,
+  .rbc-agenda-view {
+    border-color: #333;
+  }
+
+  .rbc-day-bg + .rbc-day-bg,
+  .rbc-month-row + .rbc-month-row {
+    border-left-color: #333;
+  }
+
+  .rbc-toolbar button {
+    color: #fff;
+    border-color: #fff;
+  }
+
+  .rbc-toolbar button:hover {
+    background-color: #fff;
+    color: #1e1e1e;
+  }
+
+  .rbc-toolbar button.rbc-active {
+    background-color: #fff;
+    color: #1e1e1e;
+  }
+}
+
 /* Adicione as regras CSS para ocultar os ícones */
 .event-container {
-    position: relative;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .delete-icon,
-  .edit-icon {
-    opacity: 0;
-    transition: opacity 0.3s;
-    margin-left: 5px; /* Adicione margem à esquerda */
-    z-index: 1; /* Garante que os ícones apareçam sobre o evento */
-  }
-  
-  .event-container:hover .delete-icon,
-  .event-container:hover .edit-icon {
-    opacity: 1;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  position: relative;
+  width: 100%;
+}
+
+.event-container:hover .delete-icon,
+.event-container:hover .edit-icon {
+  opacity: 1;
+}
+
+.delete-icon,
+.edit-icon {
+  position: absolute;
+  right: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  cursor: pointer;
+  color: white;
+}
+
+.delete-icon {
+  right: 4px;
+}
+
+.edit-icon {
+  right: 32px;
+}
+
+.delete-icon:hover,
+.edit-icon:hover {
+  color: #ffeb3b;
+}
   

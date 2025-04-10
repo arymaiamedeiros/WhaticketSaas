@@ -1,8 +1,18 @@
-import { Box, Chip, TextField } from "@material-ui/core";
-import Autocomplete from "@material-ui/lab/Autocomplete";
+import { Box, Chip, TextField, Autocomplete } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import React, { useEffect, useState } from "react";
 import toastError from "../../errors/toastError";
 import api from "../../services/api";
+
+const FilterContainer = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(1),
+}));
+
+const StyledChip = styled(Chip)(({ theme, color }) => ({
+  backgroundColor: color || theme.palette.grey[200],
+  textShadow: "1px 1px 1px #000",
+  color: "white",
+}));
 
 export function TagsFilter({ onFiltered }) {
   const [tags, setTags] = useState([]);
@@ -30,7 +40,7 @@ export function TagsFilter({ onFiltered }) {
   };
 
   return (
-    <Box style={{ padding: 10 }}>
+    <FilterContainer>
       <Autocomplete
         multiple
         size="small"
@@ -40,13 +50,9 @@ export function TagsFilter({ onFiltered }) {
         getOptionLabel={(option) => option.name}
         renderTags={(value, getTagProps) =>
           value.map((option, index) => (
-            <Chip
+            <StyledChip
               variant="outlined"
-              style={{
-                backgroundColor: option.color || "#eee",
-                textShadow: "1px 1px 1px #000",
-                color: "white",
-              }}
+              color={option.color}
               label={option.name}
               {...getTagProps({ index })}
               size="small"
@@ -61,6 +67,6 @@ export function TagsFilter({ onFiltered }) {
           />
         )}
       />
-    </Box>
+    </FilterContainer>
   );
 }

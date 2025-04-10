@@ -1,42 +1,29 @@
 import React, { useState, useRef } from "react";
+import { styled } from '@mui/material/styles';
+import Popover from "@mui/material/Popover";
+import IconButton from "@mui/material/IconButton";
+import List from "@mui/material/List";
+import VolumeUpIcon from "@mui/icons-material/VolumeUp";
+import VolumeDownIcon from "@mui/icons-material/VolumeDown";
+import Grid from "@mui/material/Grid";
+import Slider from "@mui/material/Slider";
+import Box from "@mui/material/Box";
 
-import Popover from "@material-ui/core/Popover";
-import IconButton from "@material-ui/core/IconButton";
-import List from "@material-ui/core/List";
-import { makeStyles } from "@material-ui/core/styles";
-import VolumeUpIcon from "@material-ui/icons/VolumeUp";
-import VolumeDownIcon from "@material-ui/icons/VolumeDown";
+const TabContainer = styled(Box)(({ theme }) => ({
+    padding: theme.spacing(2),
+}));
 
-import { Grid, Slider } from "@material-ui/core";
-
-const useStyles = makeStyles((theme) => ({
-    tabContainer: {
-        padding: theme.spacing(2),
-    },
-    popoverPaper: {
-        width: "100%",
-        maxWidth: 350,
-        marginLeft: theme.spacing(2),
-        marginRight: theme.spacing(1),
-        [theme.breakpoints.down("sm")]: {
-            maxWidth: 270,
-        },
-    },
-    noShadow: {
-        boxShadow: "none !important",
-    },
-    icons: {
-        color: "#fff",
-    },
-    customBadge: {
-        backgroundColor: "#f44336",
-        color: "#fff",
+const PopoverContainer = styled(Box)(({ theme }) => ({
+    width: "100%",
+    maxWidth: 350,
+    marginLeft: theme.spacing(2),
+    marginRight: theme.spacing(1),
+    [theme.breakpoints.down("sm")]: {
+        maxWidth: 270,
     },
 }));
 
 const NotificationsVolume = ({ volume, setVolume }) => {
-    const classes = useStyles();
-
     const anchorEl = useRef();
     const [isOpen, setIsOpen] = useState(false);
 
@@ -56,14 +43,12 @@ const NotificationsVolume = ({ volume, setVolume }) => {
     return (
         <>
             <IconButton
-                className={classes.icons}
                 onClick={handleClick}
                 ref={anchorEl}
                 aria-label="Open Notifications"
-                // color="inherit"
-                // color="secondary"
+                sx={{ color: "white" }}
             >
-                <VolumeUpIcon color="inherit" />
+                <VolumeUpIcon />
             </IconButton>
             <Popover
                 disableScrollLock
@@ -77,10 +62,20 @@ const NotificationsVolume = ({ volume, setVolume }) => {
                     vertical: "top",
                     horizontal: "right",
                 }}
-                classes={{ paper: classes.popoverPaper }}
                 onClose={handleClickAway}
+                PaperProps={{
+                    sx: {
+                        width: "100%",
+                        maxWidth: 350,
+                        ml: 2,
+                        mr: 1,
+                        '@media (max-width: 600px)': {
+                            maxWidth: 270,
+                        }
+                    }
+                }}
             >
-                <List dense className={classes.tabContainer}>
+                <List dense component={TabContainer}>
                     <Grid container spacing={2}>
                         <Grid item>
                             <VolumeDownIcon />

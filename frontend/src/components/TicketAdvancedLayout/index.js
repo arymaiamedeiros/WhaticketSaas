@@ -1,5 +1,5 @@
-import { styled } from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
+import { styled } from '@mui/material/styles';
+import Paper from '@mui/material/Paper';
 
 const TicketAdvancedLayout = styled(Paper)({
     height: `calc(100% - 48px)`,

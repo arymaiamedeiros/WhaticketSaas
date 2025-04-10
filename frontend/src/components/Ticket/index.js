@@ -4,7 +4,7 @@ import { useParams, useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import clsx from "clsx";
 
-import { Paper, makeStyles } from "@material-ui/core";
+import { Paper, makeStyles } from "@mui/material";
 
 import ContactDrawer from "../ContactDrawer";
 import MessageInput from "../MessageInputCustom/";

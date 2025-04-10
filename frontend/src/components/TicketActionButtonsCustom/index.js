@@ -1,9 +1,11 @@
 import React, { useContext, useState } from "react";
 import { useHistory } from "react-router-dom";
-
-import { makeStyles, createTheme, ThemeProvider } from "@material-ui/core/styles";
-import { IconButton } from "@material-ui/core";
-import { MoreVert, Replay } from "@material-ui/icons";
+import { styled } from "@mui/material/styles";
+import { IconButton, Tooltip, createTheme, ThemeProvider } from "@mui/material";
+import { MoreVert, Replay } from "@mui/icons-material";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
+import { green } from '@mui/material/colors';
 
 import { i18n } from "../../translate/i18n";
 import api from "../../services/api";
@@ -12,26 +14,18 @@ import ButtonWithSpinner from "../ButtonWithSpinner";
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
 import { TicketsContext } from "../../context/Tickets/TicketsContext";
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import UndoRoundedIcon from '@material-ui/icons/UndoRounded';
-import Tooltip from '@material-ui/core/Tooltip';
-import { green } from '@material-ui/core/colors';
 
-
-const useStyles = makeStyles(theme => ({
-	actionButtons: {
-		marginRight: 6,
-		flex: "none",
-		alignSelf: "center",
-		marginLeft: "auto",
-		"& > *": {
-			margin: theme.spacing(0.5),
-		},
+const ActionButtonsContainer = styled("div")(({ theme }) => ({
+	marginRight: 6,
+	flex: "none",
+	alignSelf: "center",
+	marginLeft: "auto",
+	"& > *": {
+		margin: theme.spacing(0.5),
 	},
 }));
 
 const TicketActionButtonsCustom = ({ ticket }) => {
-	const classes = useStyles();
 	const history = useHistory();
 	const [anchorEl, setAnchorEl] = useState(null);
 	const [loading, setLoading] = useState(false);
@@ -41,7 +35,7 @@ const TicketActionButtonsCustom = ({ ticket }) => {
 
 	const customTheme = createTheme({
 		palette: {
-		  	primary: green,
+			primary: green,
 		}
 	});
 
@@ -78,7 +72,7 @@ const TicketActionButtonsCustom = ({ ticket }) => {
 	};
 
 	return (
-		<div className={classes.actionButtons}>
+		<ActionButtonsContainer>
 			{ticket.status === "closed" && (
 				<ButtonWithSpinner
 					loading={loading}
@@ -103,23 +97,6 @@ const TicketActionButtonsCustom = ({ ticket }) => {
 							</IconButton>
 						</Tooltip>
 					</ThemeProvider>
-					{/* <ButtonWithSpinner
-						loading={loading}
-						startIcon={<Replay />}
-						size="small"
-						onClick={e => handleUpdateTicketStatus(e, "pending", null)}
-					>
-						{i18n.t("messagesList.header.buttons.return")}
-					</ButtonWithSpinner>
-					<ButtonWithSpinner
-						loading={loading}
-						size="small"
-						variant="contained"
-						color="primary"
-						onClick={e => handleUpdateTicketStatus(e, "closed", user?.id)}
-					>
-						{i18n.t("messagesList.header.buttons.resolve")}
-					</ButtonWithSpinner> */}
 					<IconButton onClick={handleOpenTicketOptionsMenu}>
 						<MoreVert />
 					</IconButton>
@@ -142,7 +119,7 @@ const TicketActionButtonsCustom = ({ ticket }) => {
 					{i18n.t("messagesList.header.buttons.accept")}
 				</ButtonWithSpinner>
 			)}
-		</div>
+		</ActionButtonsContainer>
 	);
 };
 

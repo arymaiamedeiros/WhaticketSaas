@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from "react";
 
-import Avatar from "@material-ui/core/Avatar";
-import Button from "@material-ui/core/Button";
-import CssBaseline from "@material-ui/core/CssBaseline";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from '@material-ui/core/InputLabel';
-import TextField from "@material-ui/core/TextField";
-import Select from "@material-ui/core/Select"
-import MenuItem from "@material-ui/core/MenuItem"
+import Avatar from "@mui/material/Avatar";
+import Button from "@mui/material/Button";
+import CssBaseline from "@mui/material/CssBaseline";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from '@mui/material/InputLabel';
+import TextField from "@mui/material/TextField";
+import Select from "@mui/material/Select"
+import MenuItem from "@mui/material/MenuItem"
 import StoreIcon from "@material-ui/icons/Store";
-import Grid from '@material-ui/core/Grid';
-import Typography from "@material-ui/core/Typography";
-import { makeStyles } from "@material-ui/core/styles";
-import Container from "@material-ui/core/Container";
+import Grid from '@mui/material/Grid';
+import Typography from "@mui/material/Typography";
+import { makeStyles } from "@mui/material/styles";
+import Container from "@mui/material/Container";
 
 import { i18n } from "../../translate/i18n";
 import useCompanies from '../../hooks/useCompanies';

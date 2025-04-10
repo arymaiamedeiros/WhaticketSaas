@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Grid, Typography } from "@material-ui/core";
+import { Grid, Typography } from "@mui/material";
 import { InputField, SelectField } from "../../FormFields";
 import { AuthContext } from "../../../context/Auth/AuthContext";
 
@@ -15,7 +15,6 @@ const countries = [
 ];
 
 export default function AddressForm(props) {
-
   const { user } = useContext(AuthContext);
   const [billingName, setBillingName] = useState(user.company.billingName);
   const [addressZipCode, setAddressZipCode] = useState(user.company.addressZipCode);
@@ -35,15 +34,16 @@ export default function AddressForm(props) {
     },
     setFieldValue
   } = props;
+
   useEffect(() => {
-    setFieldValue("firstName", billingName)
-    setFieldValue("zipcode", addressZipCode)
-    setFieldValue("address2", addressStreet)
-    setFieldValue("state", addressState)
-    setFieldValue("city", addressCity)
-    setFieldValue("country", addressDistrict)
+    setFieldValue("firstName", billingName);
+    setFieldValue("zipcode", addressZipCode);
+    setFieldValue("address2", addressStreet);
+    setFieldValue("state", addressState);
+    setFieldValue("city", addressCity);
+    setFieldValue("country", addressDistrict);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   return (
     <React.Fragment>
@@ -51,13 +51,15 @@ export default function AddressForm(props) {
         Vamos precisar de algumas informações
       </Typography>
       <Grid container spacing={3}>
-
         <Grid item xs={6} sm={6}>
-          <InputField name={firstName.name} label={firstName.label} fullWidth
+          <InputField 
+            name={firstName.name} 
+            label={firstName.label} 
+            fullWidth
             value={billingName}
             onChange={(e) => {
-              setBillingName(e.target.value)
-              setFieldValue("firstName", e.target.value)
+              setBillingName(e.target.value);
+              setFieldValue("firstName", e.target.value);
             }}
           />
         </Grid>
@@ -69,10 +71,9 @@ export default function AddressForm(props) {
             fullWidth
             value={addressDistrict}
             onChange={(e) => {
-              setAddressDistrict(e.target.value)
-              setFieldValue("country", e.target.value)
-            }
-            }
+              setAddressDistrict(e.target.value);
+              setFieldValue("country", e.target.value);
+            }}
           />
         </Grid>
 
@@ -83,8 +84,8 @@ export default function AddressForm(props) {
             fullWidth
             value={addressZipCode}
             onChange={(e) => {
-              setAddressZipCode(e.target.value)
-              setFieldValue("zipcode", e.target.value)
+              setAddressZipCode(e.target.value);
+              setFieldValue("zipcode", e.target.value);
             }}
           />
         </Grid>
@@ -95,9 +96,8 @@ export default function AddressForm(props) {
             fullWidth
             value={addressStreet}
             onChange={(e) => {
-              setAddressStreet(e.target.value)
-              setFieldValue("address2", e.target.value)
-
+              setAddressStreet(e.target.value);
+              setFieldValue("address2", e.target.value);
             }}
           />
         </Grid>
@@ -109,9 +109,8 @@ export default function AddressForm(props) {
             fullWidth
             value={addressState}
             onChange={(e) => {
-              setAddressState(e.target.value)
-              setFieldValue("state", e.target.value)
-
+              setAddressState(e.target.value);
+              setFieldValue("state", e.target.value);
             }}
           />
         </Grid>
@@ -122,12 +121,11 @@ export default function AddressForm(props) {
             fullWidth
             value={addressCity}
             onChange={(e) => {
-              setAddressCity(e.target.value)
-              setFieldValue("city", e.target.value)
+              setAddressCity(e.target.value);
+              setFieldValue("city", e.target.value);
             }}
           />
         </Grid>
-
       </Grid>
     </React.Fragment>
   );
