@@ -1,0 +1,13 @@
+# Ignorar node_modules em qualquer subpasta
+**/node_modules/
+
+# Ignorar a pasta build dentro de frontend
+/frontend/build/
+
+# Outros arquivos/pastas comuns para ignorar (opcional)
+.DS_Store
+.env
+*.log
+.idea
+.vscode
+dist/
