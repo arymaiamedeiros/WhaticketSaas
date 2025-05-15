@@ -1,0 +1,130 @@
+/* Reset completo de estilos da biblioteca para evitar conflitos */
+.Toastify__toast-container {
+    position: fixed !important;
+    z-index: 9999 !important;
+    top: 1em !important;
+    right: 1em !important;
+    width: 320px !important;
+    box-sizing: border-box !important;
+    pointer-events: auto !important;
+}
+
+/* Ajustes para o toast em si */
+.Toastify__toast {
+    position: relative !important;
+    min-height: 64px !important;
+    box-sizing: border-box !important;
+    margin-bottom: 1rem !important;
+    padding: 8px !important;
+    border-radius: 4px !important;
+    box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.1), 0 2px 15px 0 rgba(0, 0, 0, 0.05) !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    max-height: 800px !important;
+    overflow: hidden !important;
+    font-family: sans-serif !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Efeito de hover para indicar clicabilidade */
+.Toastify__toast:hover {
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.15), 0 3px 18px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Conteúdo do toast */
+.Toastify__toast-body {
+    margin: auto 0 !important;
+    padding: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    flex: 1 !important;
+}
+
+/* Botão de fechar */
+.Toastify__close-button {
+    position: absolute !important;
+    top: 5px !important;
+    right: 5px !important;
+    color: #777 !important;
+    font-size: 16px !important;
+    background: transparent !important;
+    outline: none !important;
+    border: none !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    opacity: 0.7 !important;
+    transition: 0.3s ease !important;
+    font-weight: bold !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.Toastify__close-button:hover {
+    opacity: 1 !important;
+}
+
+/* Garantir que o progresso seja visível */
+.Toastify__progress-bar {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 4px !important;
+    z-index: 9999 !important;
+    opacity: 0.7 !important;
+    background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Ajustes específicos por tipo */
+.Toastify__toast--success {
+    background-color: #07bc0c !important;
+    color: white !important;
+}
+
+.Toastify__toast--error {
+    background-color: #e74c3c !important;
+    color: white !important;
+}
+
+.Toastify__toast--warning {
+    background-color: #f1c40f !important;
+    color: white !important;
+}
+
+.Toastify__toast--info {
+    background-color: #3498db !important;
+    color: white !important;
+}
+
+/* Animações otimizadas */
+@keyframes Toastify__slideInRight {
+    from {
+        transform: translate3d(110%, 0, 0);
+        visibility: visible;
+    }
+    to {
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes Toastify__slideOutRight {
+    from {
+        transform: translate3d(0, 0, 0);
+    }
+    to {
+        transform: translate3d(110%, 0, 0);
+        visibility: hidden;
+    }
+}
+
+.Toastify__slide-enter--top-right {
+    animation: Toastify__slideInRight 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35);
+}
+
+.Toastify__slide-exit--top-right {
+    animation: Toastify__slideOutRight 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35) forwards;
+} 

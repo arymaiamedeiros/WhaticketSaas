@@ -1,0 +1,25 @@
+                                          Table "public.Plans"
+     Column      |           Type           | Collation | Nullable |               Default               
+-----------------+--------------------------+-----------+----------+-------------------------------------
+ id              | integer                  |           | not null | nextval('"Plans_id_seq"'::regclass)
+ name            | character varying(255)   |           | not null | 
+ users           | integer                  |           |          | 0
+ connections     | integer                  |           |          | 0
+ queues          | integer                  |           |          | 0
+ value           | double precision         |           |          | '0'::double precision
+ createdAt       | timestamp with time zone |           | not null | 
+ updatedAt       | timestamp with time zone |           | not null | 
+ useCampaigns    | boolean                  |           |          | true
+ useExternalApi  | boolean                  |           |          | true
+ useInternalChat | boolean                  |           |          | true
+ useSchedules    | boolean                  |           |          | true
+ useKanban       | boolean                  |           |          | true
+ useOpenAi       | boolean                  |           |          | true
+ useIntegrations | boolean                  |           |          | true
+ useInternal     | boolean                  |           |          | true
+Indexes:
+    "Plans_pkey" PRIMARY KEY, btree (id)
+    "Plans_name_key" UNIQUE CONSTRAINT, btree (name)
+Referenced by:
+    TABLE ""Companies"" CONSTRAINT "Companies_planId_fkey" FOREIGN KEY ("planId") REFERENCES "Plans"(id) ON UPDATE CASCADE ON DELETE SET NULL
+

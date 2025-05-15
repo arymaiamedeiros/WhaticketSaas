@@ -1,0 +1,5 @@
+ id |  name   | users | connections | queues | value |         createdAt          |         updatedAt          | useCampaigns | useExternalApi | useInternalChat | useSchedules | useKanban | useOpenAi | useIntegrations | useInternal 
+----+---------+-------+-------------+--------+-------+----------------------------+----------------------------+--------------+----------------+-----------------+--------------+-----------+-----------+-----------------+-------------
+  1 | Plano 1 |    10 |          10 |     10 |    30 | 2025-04-16 13:13:45.505-03 | 2025-04-16 13:13:45.505-03 | t            | t              | t               | t            | t         | t         | t               | t
+(1 row)
+
