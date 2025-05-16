@@ -12,7 +12,8 @@ const {
     nameOnCard,
     cardNumber,
     invoiceId,
-    cvv
+    cvv,
+    plan
   }
 } = checkoutFormModel;
 
@@ -28,5 +29,6 @@ export default {
   [nameOnCard.name]: '',
   [cardNumber.name]: '',
   [invoiceId.name]: '',
-  [cvv.name]: ''
+  [cvv.name]: '',
+  [plan.name]: ''
 };

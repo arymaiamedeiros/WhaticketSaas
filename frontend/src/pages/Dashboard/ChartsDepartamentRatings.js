@@ -282,7 +282,7 @@ const ChartsDepartamentRatings = () => {
         label: "Quantidade",
         data:
           chartData.length > 0
-            ? chartData.map((item) => parseFloat(item.total_rate).toFixed(2))
+            ? chartData.map((item) => Number(parseFloat(item.total_rate).toFixed(2)))
             : 0,
         backgroundColor: "rgba(255, 99, 132, 0.2)",
         borderColor: "rgba(255, 99, 132, 1)",

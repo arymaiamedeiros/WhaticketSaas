@@ -16,8 +16,7 @@ import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ErrorIcon from "@material-ui/icons/Error";
 import moment from "moment";
 
-import Rating from "@material-ui/lab/Rating";
-import { Tooltip } from "@material-ui/core";
+import SafeRating from "../SafeRating";
 
 const useStyles = makeStyles((theme) => ({
     on: {
@@ -31,14 +30,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export function RatingBox({ rating }) {
-    const ratingTrunc = rating && rating > 0 ? rating.toFixed(1) : 0;
-    return (
-        <Tooltip title={ratingTrunc} arrow>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <Rating defaultValue={ratingTrunc} max={5} precision={0.1} readOnly />
-            </div>
-        </Tooltip>
-    );
+    return <SafeRating value={rating} />;
 }
 
 export default function TableAttendantsStatus(props) {
@@ -64,39 +56,41 @@ export default function TableAttendantsStatus(props) {
         return moment().startOf("day").add(minutes, "minutes").format("HH[h] mm[m]");
     }
 
-    return !loading ? (
-        <TableContainer component={Paper}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Nome</TableCell>
-                        <TableCell align="center">Avaliações</TableCell>
-                        <TableCell align="center">T.M. de Atendimento</TableCell>
-                        <TableCell align="center">Status (Atual)</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {renderList()}
-                    {/* <TableRow>
-                        <TableCell>Nome 4</TableCell>
-                        <TableCell align="center">10</TableCell>
-                        <TableCell align="center">10 minutos</TableCell>
-                        <TableCell align="center">
-                            <CheckCircleIcon className={classes.off} />
-                        </TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell>Nome 5</TableCell>
-                        <TableCell align="center">10</TableCell>
-                        <TableCell align="center">10 minutos</TableCell>
-                        <TableCell align="center">
-                            <CheckCircleIcon className={classes.on} />
-                        </TableCell>
-                    </TableRow> */}
-                </TableBody>
-            </Table>
-        </TableContainer>
-    ) : (
-        <Skeleton variant="rect" height={150} />
+    return (
+        <Paper className={classes.paper} elevation={0}>
+            <TableContainer>
+                <Table size="small">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell align="left">Atendente</TableCell>
+                            <TableCell align="center">Avaliação</TableCell>
+                            <TableCell align="center">T.M</TableCell>
+                            <TableCell align="center">Status</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {loading ? Array(3)
+                            .fill(0)
+                            .map((e, i) => (
+                                <TableRow key={i}>
+                                    <TableCell align="center">
+                                        <Skeleton animation="wave" />
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Skeleton animation="wave" />
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Skeleton animation="wave" />
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Skeleton animation="wave" />
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                            : renderList()}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Paper>
     );
 }

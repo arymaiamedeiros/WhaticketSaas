@@ -66,33 +66,76 @@ function _renderStepContent(step, setFieldValue, setActiveStep, values ) {
 
   async function _submitForm(values, actions) {
     try {
-      const plan = JSON.parse(values.plan);
-      const newValues = {
-        firstName: values.firstName,
-        lastName: values.lastName,
-        address2: values.address2,
-        city: values.city,
-        state: values.state,
-        zipcode: values.zipcode,
-        country: values.country,
-        useAddressForPaymentDetails: values.useAddressForPaymentDetails,
-        nameOnCard: values.nameOnCard,
-        cardNumber: values.cardNumber,
-        cvv: values.cvv,
-        plan: values.plan,
-        price: plan.price,
-        users: plan.users,
-        connections: plan.connections,
-        invoiceId: invoiceId
+      // Verificar campos obrigatórios
+      if (!values.firstName) {
+        toast.error("O nome completo é obrigatório");
+        actions.setSubmitting(false);
+        return;
       }
 
+      // Certifica-se de que o plano é um objeto JSON válido
+      let planObj;
+      try {
+        planObj = JSON.parse(values.plan);
+      } catch (error) {
+        console.error("Erro ao analisar o plano:", error);
+        toast.error("Erro no formato do plano selecionado");
+        actions.setSubmitting(false);
+        return;
+      }
+
+      // Verificar se o objeto do plano contém as propriedades necessárias
+      if (!planObj || !planObj.price || !planObj.users || !planObj.connections) {
+        console.error("Dados do plano incompletos:", planObj);
+        toast.error("Dados do plano incompletos. Por favor, selecione um plano válido.");
+        actions.setSubmitting(false);
+        return;
+      }
+
+      // Verificar se invoiceId existe
+      if (!invoiceId) {
+        console.error("ID da fatura não encontrado");
+        toast.error("ID da fatura não encontrado. Por favor, tente novamente.");
+        actions.setSubmitting(false);
+        return;
+      }
+
+      // Garante que os valores numéricos sejam enviados como números
+      const newValues = {
+        firstName: values.firstName || "",
+        lastName: values.lastName || "",
+        address2: values.address2 || "",
+        city: values.city || "",
+        state: values.state || "",
+        zipcode: values.zipcode || "",
+        country: values.country || "",
+        useAddressForPaymentDetails: values.useAddressForPaymentDetails || false,
+        nameOnCard: values.nameOnCard || "",
+        cardNumber: values.cardNumber || "",
+        cvv: values.cvv || "",
+        plan: values.plan, // Mantém o JSON como string
+        price: parseFloat(planObj.price),
+        users: parseInt(planObj.users),
+        connections: parseInt(planObj.connections),
+        invoiceId: parseInt(invoiceId)
+      }
+
+      console.log("Enviando dados da assinatura:", newValues);
+      
       const { data } = await api.post("/subscription", newValues);
       setDatePayment(data)
       actions.setSubmitting(false);
       setActiveStep(activeStep + 1);
       toast.success("Assinatura realizada com sucesso!, aguardando a realização do pagamento");
     } catch (err) {
-      toastError(err);
+      console.error("Erro ao submeter formulário:", err);
+      // Verificar se o erro é de validação do backend
+      if (err.response && err.response.data && err.response.data.error) {
+        toast.error(`Erro: ${err.response.data.error}`);
+      } else {
+        toastError(err);
+      }
+      actions.setSubmitting(false);
     }
   }
 

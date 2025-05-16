@@ -346,14 +346,6 @@ const CustomInput = (props) => {
   const [options, setOptions] = useState([]);
   const [popupOpen, setPopupOpen] = useState(false);
   const { user } = useContext(AuthContext);
-  const timeoutsRef = useRef([]);
-
-  // Função para criar timeouts com limpeza automática
-  const setTimeoutWithCleanup = (callback, delay) => {
-    const timeoutId = setTimeout(callback, delay);
-    timeoutsRef.current.push(timeoutId);
-    return timeoutId;
-  };
 
   const { list: listQuickMessages } = useQuickMessages();
 
@@ -378,36 +370,29 @@ const CustomInput = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Adicionando limpeza dos timeouts quando o componente desmontar
-  useEffect(() => {
-    return () => {
-      timeoutsRef.current.forEach(clearTimeout);
-    };
-  }, []);
+useEffect(() => {
+  if (
+    isString(inputMessage) &&
+    !isEmpty(inputMessage) &&
+    inputMessage.length > 0
+  ) {
+    const firstChar = inputMessage.charAt(0);
+    setPopupOpen(firstChar === "/");
 
-  useEffect(() => {
-    if (
-      isString(inputMessage) &&
-      !isEmpty(inputMessage) &&
-      inputMessage.length > 0
-    ) {
-      const firstChar = inputMessage.charAt(0);
-      setPopupOpen(firstChar === "/");
-
-      if (firstChar === "/") {
-        const filteredOptions = quickMessages.filter((m) =>
-          m.label.toLowerCase().startsWith(inputMessage.slice(1).toLowerCase())
-        );
-        setOptions(filteredOptions);
-      } else {
-        setOptions([]);
-      }
+    if (firstChar === "/") {
+      const filteredOptions = quickMessages.filter((m) =>
+        m.label.toLowerCase().startsWith(inputMessage.slice(1).toLowerCase())
+      );
+      setOptions(filteredOptions);
     } else {
-      setPopupOpen(false);
       setOptions([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputMessage]);
+  } else {
+    setPopupOpen(false);
+    setOptions([]);
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [inputMessage]);
 
   const onKeyPress = (e) => {
     if (loading || e.shiftKey) return;

@@ -110,6 +110,7 @@ export default function ChatPopover() {
   const { datetimeToClient } = useDate();
   const [play] = useSound(notifySound);
   const soundAlertRef = useRef();
+  const isMountedRef = useRef(true);
 
   const socketManager = useContext(SocketContext);
 
@@ -131,7 +132,9 @@ export default function ChatPopover() {
   useEffect(() => {
     setLoading(true);
     const delayDebounceFn = setTimeout(() => {
-      fetchChats();
+      if (isMountedRef.current) {
+        fetchChats();
+      }
     }, 500);
     return () => clearTimeout(delayDebounceFn);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,10 +144,14 @@ export default function ChatPopover() {
     const companyId = localStorage.getItem("companyId");
     const socket = socketManager.getSocket(companyId);
     if (!socket) {
-      return () => {}; 
+      return () => {
+        isMountedRef.current = false;
+      }; 
     }
     
-    socket.on(`company-${companyId}-chat`, (data) => {
+    const handleChatEvent = (data) => {
+      if (!isMountedRef.current) return;
+      
       if (data.action === "new-message") {
         dispatch({ type: "CHANGE_CHAT", payload: data });
         const userIds = data.newMessage.chat.users.map(userObj => userObj.userId);
@@ -156,13 +163,24 @@ export default function ChatPopover() {
       if (data.action === "update") {
         dispatch({ type: "CHANGE_CHAT", payload: data });
       }
-    });
+    };
+    
+    socket.on(`company-${companyId}-chat`, handleChatEvent);
+    
     return () => {
-      socket.disconnect();
+      isMountedRef.current = false;
+      
+      try {
+        socket.off(`company-${companyId}-chat`, handleChatEvent);
+      } catch (err) {
+        console.error("Erro ao remover listener do socket:", err);
+      }
     };
   }, [socketManager, user.id]);
 
   useEffect(() => {
+    if (!isMountedRef.current) return;
+    
     let unreadsCount = 0;
     if (chats.length > 0) {
       for (let chat of chats) {
@@ -181,24 +199,33 @@ export default function ChatPopover() {
   }, [chats, user.id]);
 
   const fetchChats = async () => {
+    if (!isMountedRef.current) return;
+    
     try {
       const { data } = await api.get("/chats/", {
         params: { searchParam, pageNumber },
       });
-      dispatch({ type: "LOAD_CHATS", payload: data.records });
-      setHasMore(data.hasMore);
-      setLoading(false);
+      if (isMountedRef.current) {
+        dispatch({ type: "LOAD_CHATS", payload: data.records });
+        setHasMore(data.hasMore);
+        setLoading(false);
+      }
     } catch (err) {
-      toastError(err);
+      if (isMountedRef.current) {
+        toastError(err);
+        setLoading(false);
+      }
     }
   };
 
   const loadMore = () => {
-    setPageNumber((prevState) => prevState + 1);
+    if (isMountedRef.current) {
+      setPageNumber((prevState) => prevState + 1);
+    }
   };
 
   const handleScroll = (e) => {
-    if (!hasMore || loading) return;
+    if (!hasMore || loading || !isMountedRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     if (scrollHeight - (scrollTop + 100) < clientHeight) {
       loadMore();
@@ -206,17 +233,27 @@ export default function ChatPopover() {
   };
 
   const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-    setInvisible(true);
+    if (isMountedRef.current) {
+      setAnchorEl(event.currentTarget);
+      setInvisible(true);
+    }
   };
 
   const handleClose = () => {
-    setAnchorEl(null);
+    if (isMountedRef.current) {
+      setAnchorEl(null);
+    }
   };
 
   const goToMessages = (chat) => {
     window.location.href = `/chats/${chat.uuid}`;
   };
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
@@ -248,43 +285,67 @@ export default function ChatPopover() {
           horizontal: "center",
         }}
       >
-        <Paper
-          variant="outlined"
-          onScroll={handleScroll}
-          className={classes.mainPaper}
-        >
-          <List
-            component="nav"
-            aria-label="main mailbox folders"
-            style={{ minWidth: 300 }}
-          >
-            {isArray(chats) &&
-              chats.map((item, key) => (
-                <ListItem
-                  key={key}
-                  style={{
-                    background: key % 2 === 0 ? "#ededed" : "white",
-                    border: "1px solid #eee",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => goToMessages(item)}
-                  button
-                >
-                  <ListItemText
-                    primary={item.lastMessage}
-                    secondary={
-                      <>
-                        <Typography component="span" style={{ fontSize: 12 }}>
-                          {datetimeToClient(item.updatedAt)}
-                        </Typography>
-                        <span style={{ marginTop: 5, display: "block" }}></span>
-                      </>
-                    }
-                  />
-                </ListItem>
-              ))}
-            {isArray(chats) && chats.length === 0 && (
-              <ListItemText primary={i18n.t("mainDrawer.appBar.notRegister")} />
+        <Paper className={classes.mainPaper} onScroll={handleScroll}>
+          <List dense>
+            {chats.length === 0 && !loading ? (
+              <ListItem>
+                <ListItemText
+                  primary={i18n.t("chatPopover.title.empty")}
+                />
+              </ListItem>
+            ) : (
+              <>
+                {chats.map((chat) => {
+                  return (
+                    <ListItem
+                      key={chat.id}
+                      button
+                      onClick={() => {
+                        goToMessages(chat);
+                      }}
+                    >
+                      <ListItemText
+                        primary={
+                          <>
+                            {chat.lastMessage && (
+                              <Typography
+                                variant="subtitle2"
+                                color="primary"
+                                gutterBottom
+                              >
+                                {chat.users.map((user) => (
+                                  <span key={user.id}>{user.name}</span>
+                                ))}
+                              </Typography>
+                            )}
+                          </>
+                        }
+                        secondary={
+                          <>
+                            {chat.lastMessage && (
+                              <Typography
+                                variant="subtitle2"
+                                style={{ fontSize: "11px" }}
+                                display="block"
+                                color="textSecondary"
+                              >
+                                {datetimeToClient(chat.updatedAt)}
+                              </Typography>
+                            )}
+                            {chat.lastMessage && (
+                              <>
+                                {chat.lastMessage.sender?.name}
+                                {": "}
+                                {chat.lastMessage?.body}
+                              </>
+                            )}
+                          </>
+                        }
+                      />
+                    </ListItem>
+                  );
+                })}
+              </>
             )}
           </List>
         </Paper>

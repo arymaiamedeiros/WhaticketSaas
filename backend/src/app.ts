@@ -30,18 +30,30 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use(
   cors({
     credentials: true,
-    origin: true, // Permite qualquer origem
+    origin: process.env.FRONTEND_URL || true, // Usa FRONTEND_URL ou permite qualquer origem
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Headers'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Headers', 'Access-Control-Allow-Credentials'],
     exposedHeaders: ['Access-Control-Allow-Origin', 'Access-Control-Allow-Credentials']
   })
 );
 
 // Middleware para adicionar cabeçalhos CORS a todas as respostas
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  // Usar a origem da requisição ou o valor do FRONTEND_URL
+  const origin = req.headers.origin || process.env.FRONTEND_URL;
+  
+  if (origin) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+  }
+  
+  // Importante: permitir cookies/credenciais
+  res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+  res.header('X-Content-Type-Options', 'nosniff');
+  res.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   
   // Lidar com solicitações preflight OPTIONS
   if (req.method === 'OPTIONS') {

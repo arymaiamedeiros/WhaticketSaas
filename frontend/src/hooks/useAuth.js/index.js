@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { useHistory } from "react-router-dom";
 import { has, isArray } from "lodash";
+import axios from "axios";
 
 import { toast } from "react-toastify";
 
@@ -164,14 +165,44 @@ const useAuth = () => {
       if (token) {
         try {
           console.log("Tentando refresh de token na inicialização...");
-          const { data } = await api.post("/auth/refresh_token");
-          api.defaults.headers.Authorization = `Bearer ${data.token}`;
-          localStorage.setItem("token", JSON.stringify(data.token));
-          setIsAuth(true);
-          setUser(data.user);
-          console.log("Refresh de token bem-sucedido!");
+          const { data } = await api.post("/auth/refresh_token", {}, {
+            // Garantir que cookies são enviados
+            withCredentials: true
+          });
+          
+          // Verifica se temos um token válido na resposta
+          if (data && data.token) {
+            api.defaults.headers.Authorization = `Bearer ${data.token}`;
+            localStorage.setItem("token", JSON.stringify(data.token));
+            setIsAuth(true);
+            setUser(data.user);
+            console.log("Refresh de token bem-sucedido!");
+          } else {
+            throw new Error("Refresh token inválido ou expirado");
+          }
         } catch (err) {
           console.error("Erro ao fazer refresh do token:", err);
+          // Tenta novamente uma vez em caso de erro de conexão, após pequena espera
+          if (err.message && (err.message.includes('network') || err.message.includes('conexão'))) {
+            try {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              const { data } = await api.post("/auth/refresh_token", {}, {
+                withCredentials: true
+              });
+              if (data && data.token) {
+                api.defaults.headers.Authorization = `Bearer ${data.token}`;
+                localStorage.setItem("token", JSON.stringify(data.token));
+                setIsAuth(true);
+                setUser(data.user);
+                console.log("Refresh de token bem-sucedido na segunda tentativa!");
+                setLoading(false);
+                return;
+              }
+            } catch (retryErr) {
+              console.error("Falha na segunda tentativa de refresh do token:", retryErr);
+            }
+          }
+          
           // Se falhar, limpa o token e força login
           localStorage.removeItem("token");
           localStorage.removeItem("companyId");
@@ -264,7 +295,63 @@ Entre em contato com o Suporte para mais informações! `);
     setIsLoggingOut(true);
 
     try {
-      // Limpa os dados locais primeiro
+      console.log("Iniciando processo de logout");
+
+      // Captura os IDs antes de limpar o localStorage
+      const companyId = localStorage.getItem("companyId");
+      const userId = localStorage.getItem("userId");
+
+      // Desconecta explicitamente todos os sockets antes de qualquer coisa
+      // Isso ajuda a prevenir tentativas de atualização de componentes durante o desmonte
+      if (socketManager && companyId) {
+        try {
+          console.log("Desconectando sockets antes do logout");
+          const socket = socketManager.getSocket(companyId);
+          if (socket) {
+            socket.disconnect();
+          }
+          
+          // Forçar reset dos sockets no manager
+          if (socketManager.currentSocket) {
+            socketManager.currentSocket.removeAllListeners();
+            socketManager.currentSocket.disconnect();
+            socketManager.currentSocket = null;
+            socketManager.currentCompanyId = null;
+            socketManager.currentUserId = null;
+          }
+        } catch (socketError) {
+          console.error("Erro ao desconectar sockets:", socketError);
+        }
+      }
+
+      // Desativa todos os interceptors para prevenir requisições após logout
+      const requestInterceptorId = api.interceptors.request.handlers.length > 0 ? 
+        api.interceptors.request.handlers[0].id : null;
+      const responseInterceptorId = api.interceptors.response.handlers.length > 0 ? 
+        api.interceptors.response.handlers[0].id : null;
+        
+      if (requestInterceptorId !== null) {
+        try {
+          api.interceptors.request.eject(requestInterceptorId);
+        } catch (e) {
+          console.error("Erro ao remover interceptor de requisição:", e);
+        }
+      }
+      
+      if (responseInterceptorId !== null) {
+        try {
+          api.interceptors.response.eject(responseInterceptorId);
+        } catch (e) {
+          console.error("Erro ao remover interceptor de resposta:", e);
+        }
+      }
+      
+      // Obtém o token atual para garantir autenticação no logout
+      const token = localStorage.getItem("token");
+      
+      // Limpa dados locais ANTES de tentar fazer logout no servidor
+      // Isso previne requisições pendentes após o logout
+      console.log("Limpando dados de sessão locais");
       setIsAuth(false);
       setUser({});
       localStorage.removeItem("token");
@@ -273,16 +360,56 @@ Entre em contato com o Suporte para mais informações! `);
       localStorage.removeItem("cshow");
       api.defaults.headers.Authorization = undefined;
 
-      // Tenta fazer o logout no servidor, mas não espera a resposta
-      api.delete("/auth/logout").catch(() => {
-        // Ignora erros do servidor
-      });
-
+      // Agora fazemos a tentativa de logout no servidor, 
+      // mas não dependemos do sucesso para limpar o frontend
+      if (token) {
+        try {
+          console.log("Tentando fazer logout no servidor");
+          
+          // Usando axios.create ao invés de api.create
+          const logoutApi = axios.create({
+            baseURL: process.env.REACT_APP_BACKEND_URL,
+            withCredentials: true
+          });
+          
+          // Define o token manualmente para esta requisição específica
+          const parsedToken = JSON.parse(token);
+          const config = {
+            headers: { Authorization: `Bearer ${parsedToken}` },
+            withCredentials: true
+          };
+          
+          await logoutApi.delete("/auth/logout", config);
+          
+          console.log("Logout no servidor realizado com sucesso");
+        } catch (serverError) {
+          // Registra o erro para diagnóstico, mas não afeta o processo local de logout
+          console.error("Erro ao fazer logout no servidor:", serverError.message);
+          if (serverError.response) {
+            console.error("Detalhes do erro:", {
+              status: serverError.response.status,
+              data: serverError.response.data
+            });
+          }
+        }
+      } else {
+        console.warn("Nenhum token encontrado para logout");
+      }
+      
+      console.log("Redirecionando para página de login");
+      
+      // Certifique-se de que o estado loading está definido como false antes de navegar
       setLoading(false);
+      
+      // Redirecionamos imediatamente para evitar qualquer possibilidade
+      // de atualização de componentes que serão desmontados
       history.push("/login");
     } catch (err) {
+      console.error("Erro geral no processo de logout:", err);
       toastError(err);
       setLoading(false);
+      // Mesmo com erro, tentamos redirecionar para a página de login
+      history.push("/login");
     } finally {
       setIsLoggingOut(false);
     }

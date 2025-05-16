@@ -1,8 +1,9 @@
-import { useState, useEffect, useReducer, useContext } from "react";
+import { useState, useEffect, useReducer, useContext, useRef } from "react";
 import toastError from "../../errors/toastError";
 
 import api from "../../services/api";
 import { SocketContext } from "../../context/Socket/SocketContext";
+import { AuthContext } from "../../context/Auth/AuthContext";
 
 const reducer = (state, action) => {
   if (action.type === "LOAD_WHATSAPPS") {
@@ -56,6 +57,8 @@ const reducer = (state, action) => {
 const useWhatsApps = () => {
   const [whatsApps, dispatch] = useReducer(reducer, []);
   const [loading, setLoading] = useState(true);
+  const isMountedRef = useRef(true);
+  const { isAuth } = useContext(AuthContext);
 
   const socketManager = useContext(SocketContext);
 
@@ -63,43 +66,78 @@ const useWhatsApps = () => {
     setLoading(true);
     const fetchSession = async () => {
       try {
+        if (!isAuth || !isMountedRef.current) {
+          console.log("Requisição de WhatsApp ignorada - usuário deslogado ou componente desmontado");
+          return;
+        }
+        
         const { data } = await api.get("/whatsapp/?session=0");
-        dispatch({ type: "LOAD_WHATSAPPS", payload: data });
-        setLoading(false);
+        
+        if (isMountedRef.current) {
+          dispatch({ type: "LOAD_WHATSAPPS", payload: data });
+          setLoading(false);
+        }
       } catch (err) {
-        setLoading(false);
-        toastError(err);
+        if (err.response && (err.response.status === 403 || err.response.status === 401)) {
+          console.log("Erro de autenticação ao carregar sessões de WhatsApp - ignorando");
+          if (isMountedRef.current) {
+            setLoading(false);
+          }
+          return;
+        }
+        
+        if (isMountedRef.current) {
+          setLoading(false);
+          toastError(err);
+        }
       }
     };
     fetchSession();
-  }, []);
+    
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [isAuth]);
 
   useEffect(() => {
+    if (!isAuth) return;
+    
     const companyId = localStorage.getItem("companyId");
+    if (!companyId) return;
+    
     const socket = socketManager.getSocket(companyId);
+    if (!socket) return;
 
     socket.on(`company-${companyId}-whatsapp`, (data) => {
+      if (!isMountedRef.current) return;
+      
       if (data.action === "update") {
         dispatch({ type: "UPDATE_WHATSAPPS", payload: data.whatsapp });
       }
     });
 
     socket.on(`company-${companyId}-whatsapp`, (data) => {
+      if (!isMountedRef.current) return;
+      
       if (data.action === "delete") {
         dispatch({ type: "DELETE_WHATSAPPS", payload: data.whatsappId });
       }
     });
 
     socket.on(`company-${companyId}-whatsappSession`, (data) => {
+      if (!isMountedRef.current) return;
+      
       if (data.action === "update") {
         dispatch({ type: "UPDATE_SESSION", payload: data.session });
       }
     });
 
     return () => {
-      socket.disconnect();
+      if (socket && socket.connected) {
+        socket.disconnect();
+      }
     };
-  }, [socketManager]);
+  }, [socketManager, isAuth]);
 
   return { whatsApps, loading };
 };

@@ -27,12 +27,24 @@ export const createSubscription = async (
     const { companyId } = req.user;
 
   const schema = Yup.object().shape({
-    price: Yup.string().required(),
-    users: Yup.string().required(),
-    connections: Yup.string().required()
+    firstName: Yup.string().required("Nome completo é obrigatório"),
+    price: Yup.number().required("Preço é obrigatório").typeError("Preço deve ser um número"),
+    users: Yup.number().required("Número de usuários é obrigatório").typeError("Número de usuários deve ser um número"),
+    connections: Yup.number().required("Número de conexões é obrigatório").typeError("Número de conexões deve ser um número"),
+    plan: Yup.string().required("Plano é obrigatório"),
+    invoiceId: Yup.number().required("ID da fatura é obrigatório").typeError("ID da fatura deve ser um número")
   });
 
-  if (!(await schema.isValid(req.body))) {
+  try {
+    await schema.validate(req.body, { abortEarly: false });
+  } catch (error) {
+    if (error instanceof Yup.ValidationError) {
+      const errors = error.inner.map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+      throw new AppError(`Validation fails: ${JSON.stringify(errors)}`, 400);
+    }
     throw new AppError("Validation fails", 400);
   }
 
@@ -50,13 +62,27 @@ export const createSubscription = async (
     invoiceId
   } = req.body;
   
+  let formattedPrice = price;
+  // Se o valor for uma string, converte para número
+  if (typeof price === 'string') {
+    formattedPrice = parseFloat(price);
+  }
+
+  if (isNaN(formattedPrice) || formattedPrice <= 0) {
+    throw new AppError("Preço inválido", 400);
+  }
+
+  // Verificar se o valor da chave PIX está configurado
+  if (!process.env.GERENCIANET_PIX_KEY) {
+    throw new AppError("Chave PIX não configurada no servidor", 500);
+  }
 
   const body = {
     calendario: {
       expiracao: 3600
     },
     valor: {
-      original: price.toLocaleString("pt-br", { minimumFractionDigits: 2 }).replace(",", ".")
+      original: formattedPrice.toLocaleString("pt-br", { minimumFractionDigits: 2 }).replace(",", ".")
     },
     chave: process.env.GERENCIANET_PIX_KEY,
     solicitacaoPagador: `#Fatura:${invoiceId}`
@@ -105,7 +131,14 @@ export const createSubscription = async (
 
     });
   } catch (error) {
-    throw new AppError("Validation fails", 400);
+    console.error("Error in subscription creation:", error);
+    
+    // Verificar se é um erro da API Gerencianet e fornecer mensagem mais específica
+    if (error.response && error.response.data) {
+      throw new AppError(`Erro na criação do pagamento: ${error.response.data.message || JSON.stringify(error.response.data)}`, 400);
+    }
+    
+    throw new AppError("Erro na criação da assinatura. Por favor, tente novamente.", 400);
   }
 };
 

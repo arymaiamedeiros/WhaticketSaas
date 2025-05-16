@@ -197,12 +197,12 @@ const SignUp = () => {
 									/>
 								</Grid>
 								<Grid item xs={12}>
-									<InputLabel htmlFor="plan-selection">Plano</InputLabel>
+									<InputLabel htmlFor="planId">Plano</InputLabel>
 									<Field
 										as={Select}
 										variant="outlined"
 										fullWidth
-										id="plan-selection"
+										id="planId"
 										label="Plano"
 										name="planId"
 										required
