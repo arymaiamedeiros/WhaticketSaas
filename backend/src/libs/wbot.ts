@@ -49,36 +49,28 @@ type Session = WASocket & {
   store?: Store;
 };
 
-export default function msg() {
-  return {
-    get: (key: WAMessageKey) => {
-      const { id } = key;
-      if (!id) return;
-      let data = msgCache.get(id);
-      if (data) {
-        try {
-          let msg = JSON.parse(data as string);
-          return msg?.message;
-        } catch (error) {
-          logger.error(error);
-        }
-      }
-    },
-    save: (msg: WAMessage) => {
-      const { id } = msg.key;
-      const msgtxt = JSON.stringify(msg);
-      try {
-        msgCache.set(id as string, msgtxt);
-      } catch (error) {
-        logger.error(error);
-      }
-    }
-  }
-}
-
-const sessions: Session[] = [];
-
+// Map to control QR code generation retries
 const retriesQrCodeMap = new Map<number, number>();
+const connectingTimeoutMap = new Map<number, NodeJS.Timeout>();
+
+// Message store for cache
+const msgDB = (function() {
+  const data = new Map<string, WAMessage>()
+  const getKey = (key: WAMessageKey) => key.remoteJid + '|' + key.id
+
+  const get = async (key: WAMessageKey): Promise<WAMessage | undefined> => {
+    const cacheKey = getKey(key);
+    if (msgCache.has(cacheKey)) {
+      return msgCache.get(cacheKey);
+    }
+    return data.get(getKey(key));
+  };
+
+  return { get };
+})();
+
+// Array to store all active sessions
+const sessions: Session[] = [];
 
 export const getWbot = (whatsappId: number): Session => {
   const sessionIndex = sessions.findIndex(s => s.id === whatsappId);
@@ -122,20 +114,31 @@ export const restartWbot = async (
 
     const whatsapp = await Whatsapp.findAll(options);
 
+    // Limpar timeouts pendentes para evitar conflitos
     whatsapp.map(async c => {
+      if (connectingTimeoutMap.has(c.id)) {
+        clearTimeout(connectingTimeoutMap.get(c.id));
+        connectingTimeoutMap.delete(c.id);
+      }
+      
+      retriesQrCodeMap.delete(c.id);
+      
       const sessionIndex = sessions.findIndex(s => s.id === c.id);
       if (sessionIndex !== -1) {
-        sessions[sessionIndex].ws.close();
+        try {
+          // Fechar a conexão websocket atual
+          sessions[sessionIndex].ws.close();
+          logger.info(`Socket ${c.id} closed for restart`);
+        } catch (err) {
+          logger.error(`Error closing socket ${c.id}: ${err}`);
+        }
       }
-
     });
 
   } catch (err) {
     logger.error(err);
   }
 };
-
-export const msgDB = msg();
 
 export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
   return new Promise(async (resolve, reject) => {
@@ -150,6 +153,52 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
         if (!whatsappUpdate) return;
 
         const { id, name, provider } = whatsappUpdate;
+
+        // Limpar qualquer timeout existente para este ID
+        if (connectingTimeoutMap.has(id)) {
+          clearTimeout(connectingTimeoutMap.get(id));
+          connectingTimeoutMap.delete(id);
+        }
+
+        // Configurar um timeout de segurança para evitar ficar preso em CONNECTING
+        const connectingTimeout = setTimeout(async () => {
+          logger.warn(`Connection timeout for WhatsApp ${name}. Forcing reconnection.`);
+          try {
+            const whatsappToUpdate = await Whatsapp.findByPk(id);
+            if (whatsappToUpdate) {
+              await whatsappToUpdate.update({ 
+                status: "DISCONNECTED", 
+                qrcode: "",
+                retries: (whatsappToUpdate.retries || 0) + 1
+              });
+              
+              io.emit(`company-${whatsapp.companyId}-whatsappSession`, {
+                action: "update",
+                session: whatsappToUpdate
+              });
+              
+              // Remove da lista de sessões ativas
+              const sessionIndex = sessions.findIndex(s => s.id === id);
+              if (sessionIndex !== -1) {
+                try {
+                  sessions[sessionIndex].ws.close();
+                  sessions.splice(sessionIndex, 1);
+                } catch (err) {
+                  logger.error(`Error closing socket on timeout: ${err}`);
+                }
+              }
+              
+              // Reinicia a sessão após um breve delay
+              setTimeout(() => {
+                StartWhatsAppSession(whatsappToUpdate, whatsappToUpdate.companyId);
+              }, 3000);
+            }
+          } catch (err) {
+            logger.error(`Error handling connection timeout: ${err}`);
+          }
+        }, 60000); // 1 minuto timeout
+        
+        connectingTimeoutMap.set(id, connectingTimeout);
 
         const { version, isLatest } = await fetchLatestBaileysVersion();
         const isLegacy = provider === "stable" ? true : false;
@@ -177,55 +226,29 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
             keys: makeCacheableSignalKeyStore(state.keys, logger),
           },
           version,
-		  browser: Browsers.appropriate("Desktop"),
+          browser: Browsers.appropriate("Desktop"),
           defaultQueryTimeoutMs: undefined,
           msgRetryCounterCache,
-		  markOnlineOnConnect: false,
-		  connectTimeoutMs: 25_000,
-		  retryRequestDelayMs: 500,
-		  getMessage: msgDB.get,
-		  emitOwnEvents: true,
+          markOnlineOnConnect: false,
+          connectTimeoutMs: 25_000,
+          retryRequestDelayMs: 500,
+          getMessage: msgDB.get,
+          emitOwnEvents: true,
           fireInitQueries: true,
-		  transactionOpts: { maxCommitRetries: 10, delayBetweenTriesMs: 3000 },
+          transactionOpts: { maxCommitRetries: 10, delayBetweenTriesMs: 3000 },
           shouldIgnoreJid: jid => isJidBroadcast(jid),
         });
-
-        // wsocket = makeWASocket({
-        //   version,
-        //   logger: loggerBaileys,
-        //   printQRInTerminal: false,
-        //   auth: state as AuthenticationState,
-        //   generateHighQualityLinkPreview: false,
-        //   shouldIgnoreJid: jid => isJidBroadcast(jid),
-        //   browser: ["Chat", "Chrome", "10.15.7"],
-        //   patchMessageBeforeSending: (message) => {
-        //     const requiresPatch = !!(
-        //       message.buttonsMessage ||
-        //       // || message.templateMessage
-        //       message.listMessage
-        //     );
-        //     if (requiresPatch) {
-        //       message = {
-        //         viewOnceMessage: {
-        //           message: {
-        //             messageContextInfo: {
-        //               deviceListMetadataVersion: 2,
-        //               deviceListMetadata: {},
-        //             },
-        //             ...message,
-        //           },
-        //         },
-        //       };
-        //     }
-
-        //     return message;
-        //   },
-        // })
 
         wsocket.ev.on(
           "connection.update",
           async ({ connection, lastDisconnect, qr }) => {
-            logger.info(`Socket ${name} Connection Update ${connection || ""} ${lastDisconnect || ""}`);
+            logger.info(`Socket ${name} Connection Update ${connection || ""} ${lastDisconnect ? JSON.stringify(lastDisconnect) : ""}`);
+
+            // Se temos uma atualização de conexão, limpamos o timeout
+            if (connectingTimeoutMap.has(id)) {
+              clearTimeout(connectingTimeoutMap.get(id));
+              connectingTimeoutMap.delete(id);
+            }
 
             const disconect = (lastDisconnect?.error as Boom)?.output?.statusCode;
 
@@ -297,8 +320,14 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
                   action: "update",
                   session: whatsapp
                 });
-                wsocket.ev.removeAllListeners("connection.update");
-                wsocket.ws.close();
+                
+                try {
+                  wsocket.ev.removeAllListeners("connection.update");
+                  wsocket.ws.close();
+                } catch (error) {
+                  logger.error(`Error closing socket after max QR retries: ${error}`);
+                }
+                
                 wsocket = null;
                 retriesQrCodeMap.delete(id);
               } else {

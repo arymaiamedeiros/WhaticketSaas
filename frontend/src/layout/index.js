@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import clsx from "clsx";
 import moment from "moment";
 import {
@@ -189,6 +189,7 @@ const LoggedInLayout = ({ children, themeToggle }) => {
   const theme = useTheme();
   const { colorMode } = useContext(ColorModeContext);
   const greaterThenSm = useMediaQuery(theme.breakpoints.up("sm"));
+  const isMountedRef = useRef(true);
 
   // Definindo os logos para modo claro e escuro
   const logoLight = `${process.env.REACT_APP_BACKEND_URL}/public/logotipos/interno.png`;
@@ -198,60 +199,18 @@ const LoggedInLayout = ({ children, themeToggle }) => {
   const initialLogo = theme.palette.type === 'light' ? logoLight : logoDark;
   const [logoImg, setLogoImg] = useState(initialLogo);
 
-
   const [volume, setVolume] = useState(localStorage.getItem("volume") || 1);
 
   const { dateToClient } = useDate();
 
-
-  //################### CODIGOS DE TESTE #########################################
-  // useEffect(() => {
-  //   navigator.getBattery().then((battery) => {
-  //     console.log(`Battery Charging: ${battery.charging}`);
-  //     console.log(`Battery Level: ${battery.level * 100}%`);
-  //     console.log(`Charging Time: ${battery.chargingTime}`);
-  //     console.log(`Discharging Time: ${battery.dischargingTime}`);
-  //   })
-  // }, []);
-
-  // useEffect(() => {
-  //   const geoLocation = navigator.geolocation
-
-  //   geoLocation.getCurrentPosition((position) => {
-  //     let lat = position.coords.latitude;
-  //     let long = position.coords.longitude;
-
-  //     console.log('latitude: ', lat)
-  //     console.log('longitude: ', long)
-  //   })
-  // }, []);
-
-  // useEffect(() => {
-  //   const nucleos = window.navigator.hardwareConcurrency;
-
-  //   console.log('Nucleos: ', nucleos)
-  // }, []);
-
-  // useEffect(() => {
-  //   console.log('userAgent', navigator.userAgent)
-  //   if (
-  //     navigator.userAgent.match(/Android/i)
-  //     || navigator.userAgent.match(/webOS/i)
-  //     || navigator.userAgent.match(/iPhone/i)
-  //     || navigator.userAgent.match(/iPad/i)
-  //     || navigator.userAgent.match(/iPod/i)
-  //     || navigator.userAgent.match(/BlackBerry/i)
-  //     || navigator.userAgent.match(/Windows Phone/i)
-  //   ) {
-  //     console.log('é mobile ', true) //celular
-  //   }
-  //   else {
-  //     console.log('não é mobile: ', false) //nao é celular
-  //   }
-  // }, []);
-  //##############################################################################
-
   const socketManager = useContext(SocketContext);
+
+  // Efeito para definir isMountedRef como false quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (document.body.offsetWidth > 1200) {
@@ -268,56 +227,103 @@ const LoggedInLayout = ({ children, themeToggle }) => {
   }, [drawerOpen]);
 
   useEffect(() => {
+    if (!isMountedRef.current) return;
+    
     const companyId = localStorage.getItem("companyId");
     const userId = localStorage.getItem("userId");
 
-    const socket = socketManager.getSocket(companyId);
+    if (!companyId || !userId) return;
 
-    socket.on(`company-${companyId}-auth`, (data) => {
+    const socket = socketManager.getSocket(companyId);
+    
+    if (!socket) return;
+
+    const handleAuthEvent = (data) => {
+      if (!isMountedRef.current) return;
+      
       if (data.user.id === +userId) {
         toastError("Sua conta foi acessada em outro computador.");
         const timeoutId = setTimeout(() => {
-          localStorage.clear();
-          window.location.reload();
+          if (isMountedRef.current) {
+            localStorage.clear();
+            window.location.reload();
+          }
         }, 1000);
         
-        // Armazenar a referência para limpar depois, se necessário
-        return () => clearTimeout(timeoutId);
+        return () => {
+          clearTimeout(timeoutId);
+        };
       }
-    });
+    };
 
+    socket.on(`company-${companyId}-auth`, handleAuthEvent);
+    
     socket.emit("userStatus");
+    
     const interval = setInterval(() => {
-      socket.emit("userStatus");
+      if (isMountedRef.current) {
+        socket.emit("userStatus");
+      }
     }, 1000 * 60 * 5);
 
     return () => {
-      socket.disconnect();
-      clearInterval(interval);
+      try {
+        clearInterval(interval);
+        socket.off(`company-${companyId}-auth`, handleAuthEvent);
+        
+        // Não desconecte o socket aqui, pois pode afetar outros componentes
+        // A desconexão deve ocorrer apenas no processo de logout
+      } catch (err) {
+        console.error("Erro ao limpar eventos de socket:", err);
+      }
     };
   }, [socketManager]);
 
   const handleMenu = (event) => {
+    if (!isMountedRef.current) return;
     setAnchorEl(event.currentTarget);
     setMenuOpen(true);
   };
 
   const handleCloseMenu = () => {
+    if (!isMountedRef.current) return;
     setAnchorEl(null);
     setMenuOpen(false);
   };
 
   const handleOpenUserModal = () => {
+    if (!isMountedRef.current) return;
     setUserModalOpen(true);
     handleCloseMenu();
   };
 
   const handleClickLogout = () => {
+    if (!isMountedRef.current) return;
     handleCloseMenu();
-    handleLogout();
+    
+    // Desconecta globalmente os sockets antes de chamar o logout
+    try {
+      const companyId = localStorage.getItem("companyId");
+      if (companyId && socketManager) {
+        const socket = socketManager.getSocket(companyId);
+        if (socket) {
+          socket.disconnect();
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao desconectar socket antes do logout:", err);
+    }
+    
+    // Pequeno timeout para garantir que os listeners de socket foram removidos
+    setTimeout(() => {
+      if (isMountedRef.current) {
+        handleLogout();
+      }
+    }, 100);
   };
 
   const drawerClose = () => {
+    if (!isMountedRef.current) return;
     if (document.body.offsetWidth < 600) {
       setDrawerOpen(false);
     }
@@ -328,6 +334,7 @@ const LoggedInLayout = ({ children, themeToggle }) => {
   }
 
   const handleMenuItemClick = () => {
+    if (!isMountedRef.current) return;
     const { innerWidth: width } = window;
     if (width <= 600) {
       setDrawerOpen(false);
@@ -335,11 +342,13 @@ const LoggedInLayout = ({ children, themeToggle }) => {
   };
 
   useEffect(() => {
+    if (!isMountedRef.current) return;
     // Atualiza o logo sempre que o modo do tema muda
     setLogoImg(theme.palette.type === 'light' ? logoLight : logoDark);
-  }, [theme.palette.type]);
+  }, [theme.palette.type, logoLight, logoDark]);
 
   const toggleColorMode = () => {
+    if (!isMountedRef.current) return;
     colorMode.toggleColorMode();
     setLogoImg((prevLogo) => (prevLogo === logoLight ? logoDark : logoLight));
   };
@@ -347,7 +356,6 @@ const LoggedInLayout = ({ children, themeToggle }) => {
   if (loading) {
     return <BackdropLoading />;
   }
-
 
   return (
     <div className={classes.root}>

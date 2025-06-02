@@ -396,20 +396,34 @@ Entre em contato com o Suporte para mais informações! `);
         console.warn("Nenhum token encontrado para logout");
       }
       
-      console.log("Redirecionando para página de login");
-      
       // Certifique-se de que o estado loading está definido como false antes de navegar
       setLoading(false);
       
-      // Redirecionamos imediatamente para evitar qualquer possibilidade
-      // de atualização de componentes que serão desmontados
-      history.push("/login");
+      console.log("Redirecionando para página de login");
+      
+      // Adiciona um pequeno atraso antes do redirecionamento
+      // Isso dá tempo para que os componentes sejam desmontados e seus efeitos de limpeza executados
+      // antes de navegar para a página de login
+      setTimeout(() => {
+        // Redirecionamos para evitar qualquer possibilidade
+        // de atualização de componentes que serão desmontados
+        history.push("/login");
+        
+        // Limpa novamente quaisquer listeners ou manipuladores que possam ter sido adicionados
+        setTimeout(() => {
+          if (window.location.pathname !== "/login") {
+            window.location.href = "/login";
+          }
+        }, 500);
+      }, 300);
     } catch (err) {
       console.error("Erro geral no processo de logout:", err);
       toastError(err);
       setLoading(false);
       // Mesmo com erro, tentamos redirecionar para a página de login
-      history.push("/login");
+      setTimeout(() => {
+        history.push("/login");
+      }, 300);
     } finally {
       setIsLoggingOut(false);
     }

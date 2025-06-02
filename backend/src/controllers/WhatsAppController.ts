@@ -9,6 +9,7 @@ import ListWhatsAppsService from "../services/WhatsappService/ListWhatsAppsServi
 import ShowWhatsAppService from "../services/WhatsappService/ShowWhatsAppService";
 import UpdateWhatsAppService from "../services/WhatsappService/UpdateWhatsAppService";
 import AppError from "../errors/AppError";
+import Whatsapp from "../models/Whatsapp";
 
 interface WhatsappData {
   name: string;
@@ -168,7 +169,6 @@ export const remove = async (
   return res.status(200).json({ message: "Whatsapp deleted." });
 };
 
-
 export const restart = async (
   req: Request,
   res: Response
@@ -179,7 +179,43 @@ export const restart = async (
     throw new AppError("ERR_NO_PERMISSION", 403);
   }
 
-  await restartWbot(companyId);
+  try {
+    // Reinicia todos os whatsapps da empresa
+    await restartWbot(companyId);
 
-  return res.status(200).json({ message: "Whatsapp restart." });
+    // Busca todos os whatsapps da empresa que estão em estado de OPENING ou CONNECTING
+    const pendingWhatsapps = await Whatsapp.findAll({
+      where: {
+        companyId,
+        status: ["OPENING", "CONNECTING"]
+      }
+    });
+
+    // Para cada um deles, atualize para DISCONNECTED e reinicie a sessão
+    for (const whatsapp of pendingWhatsapps) {
+      await whatsapp.update({ 
+        status: "DISCONNECTED", 
+        qrcode: "",
+        retries: 0
+      });
+
+      // Notificar clientes via socket
+      const io = getIO();
+      io.emit(`company-${companyId}-whatsappSession`, {
+        action: "update",
+        session: whatsapp
+      });
+
+      // Aguardar um pequeno intervalo para evitar sobrecarga
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Iniciar nova sessão WhatsApp
+      StartWhatsAppSession(whatsapp, companyId);
+    }
+
+    return res.status(200).json({ message: "WhatsApp connections restarted successfully." });
+  } catch (error) {
+    console.error("Error restarting WhatsApp connections:", error);
+    throw new AppError("Error restarting WhatsApp connections", 500);
+  }
 };

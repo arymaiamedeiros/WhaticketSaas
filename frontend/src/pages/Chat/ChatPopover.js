@@ -122,14 +122,22 @@ export default function ChatPopover() {
     } else {
       Notification.requestPermission();
     }
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [play]);
 
   useEffect(() => {
+    if (!isMountedRef.current) return;
+    
     dispatch({ type: "RESET" });
     setPageNumber(1);
   }, [searchParam]);
 
   useEffect(() => {
+    if (!isMountedRef.current) return;
+    
     setLoading(true);
     const delayDebounceFn = setTimeout(() => {
       if (isMountedRef.current) {
@@ -248,12 +256,6 @@ export default function ChatPopover() {
   const goToMessages = (chat) => {
     window.location.href = `/chats/${chat.uuid}`;
   };
-
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
 
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
