@@ -52,42 +52,108 @@ Sistema de atendimento ao cliente via WhatsApp integrado com múltiplos canais d
 - Docker Compose
 - Git
 
-## 🔧 Instalação
+# Whaticket - Instalação com Docker
+
+Este projeto é uma aplicação de atendimento ao cliente via WhatsApp, construída com Node.js, React e PostgreSQL.
+
+## Requisitos
+
+- Docker
+- Docker Compose
+
+## Instalação
 
 1. Clone o repositório:
 ```bash
 git clone https://github.com/arymaiamedeiros/WhaticketSaas.git
-cd whaticketsaas
+cd whaticket
 ```
 
 2. Configure as variáveis de ambiente:
-```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-```
+   - O arquivo `docker-compose.yml` já contém as configurações básicas
+   - Você pode modificar as variáveis de ambiente conforme necessário
 
-3. Edite os arquivos .env com suas configurações
-
-4. Inicie os containers:
+3. Inicie os containers:
 ```bash
 docker-compose up -d
 ```
 
+4. Aguarde alguns minutos para que todos os serviços sejam iniciados
+
 5. Acesse a aplicação:
-- Frontend: http://localhost:3000
-- Backend: http://localhost:8080
-- API Docs: http://localhost:8080/api-docs
+   - Frontend: http://localhost:3000
+   - Backend: http://localhost:8080
 
-## 🧪 Testes
+## Serviços
 
+O projeto consiste em 4 serviços principais:
+
+1. **PostgreSQL** (porta 5432)
+   - Banco de dados principal
+   - Dados persistentes armazenados em volume Docker
+
+2. **Redis** (porta 6379)
+   - Cache e gerenciamento de sessões
+   - Armazenamento temporário de dados
+
+3. **Backend** (porta 8080)
+   - API REST
+   - Integração com WhatsApp
+   - Processamento de mensagens
+
+4. **Frontend** (porta 3000)
+   - Interface do usuário
+   - Dashboard de atendimento
+   - Gerenciamento de tickets
+
+## Configuração
+
+### Variáveis de Ambiente
+
+#### Backend
+- `NODE_ENV`: ambiente de execução
+- `DB_DIALECT`: tipo de banco de dados
+- `DB_HOST`: host do banco de dados
+- `DB_USER`: usuário do banco de dados
+- `DB_PASS`: senha do banco de dados
+- `DB_NAME`: nome do banco de dados
+- `REDIS_URI`: URI de conexão com Redis
+- `FRONTEND_URL`: URL do frontend
+- `BACKEND_URL`: URL do backend
+
+#### Frontend
+- `REACT_APP_BACKEND_URL`: URL do backend
+
+## Volumes
+
+- `postgres_data`: Armazena os dados do PostgreSQL
+- `./backend:/usr/src/app`: Código fonte do backend
+- `./frontend:/usr/src/app`: Código fonte do frontend
+
+## Redes
+
+- `whaticket-network`: Rede interna para comunicação entre os containers
+
+## Comandos Úteis
+
+- Iniciar todos os serviços:
 ```bash
-# Testes do frontend
-cd frontend
-npm test
+docker-compose up -d
+```
 
-# Testes do backend
-cd backend
-npm test
+- Parar todos os serviços:
+```bash
+docker-compose down
+```
+
+- Ver logs:
+```bash
+docker-compose logs -f
+```
+
+- Reconstruir containers:
+```bash
+docker-compose up -d --build
 ```
 
 ## 📦 Deploy

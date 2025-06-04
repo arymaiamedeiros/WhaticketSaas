@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: whaticket-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: whaticket
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - whaticket-network
+
+  redis:
+    image: redis:alpine
+    container_name: whaticket-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - whaticket-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: whaticket-backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      DB_DIALECT: postgres
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: whaticket
+      REDIS_URI: redis://redis:6379
+      FRONTEND_URL: http://localhost:3000
+      BACKEND_URL: http://localhost:8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - whaticket-network
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: whaticket-frontend
+    restart: always
+    environment:
+      REACT_APP_BACKEND_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - whaticket-network
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+
+networks:
+  whaticket-network:
+    driver: bridge
+
+volumes:
+  postgres_data: 
