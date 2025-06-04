@@ -10,7 +10,8 @@ import makeWASocket, {
   isJidBroadcast,
   WAMessageKey,
   jidNormalizedUser,
-  CacheStore
+  CacheStore,
+  proto
 } from "@whiskeysockets/baileys";
 import { Op } from "sequelize";
 import { FindOptions } from "sequelize/types";
@@ -55,15 +56,15 @@ const connectingTimeoutMap = new Map<number, NodeJS.Timeout>();
 
 // Message store for cache
 const msgDB = (function() {
-  const data = new Map<string, WAMessage>()
-  const getKey = (key: WAMessageKey) => key.remoteJid + '|' + key.id
+  const data = new Map<string, proto.IWebMessageInfo>()
+  const getKey = (key: proto.IMessageKey) => key.remoteJid + '|' + key.id
 
-  const get = async (key: WAMessageKey): Promise<WAMessage | undefined> => {
+  const get = async (key: proto.IMessageKey): Promise<proto.IMessage | undefined> => {
     const cacheKey = getKey(key);
     if (msgCache.has(cacheKey)) {
-      return msgCache.get(cacheKey);
+      return msgCache.get(cacheKey) as proto.IMessage;
     }
-    return data.get(getKey(key));
+    return data.get(getKey(key)) as proto.IMessage;
   };
 
   return { get };
