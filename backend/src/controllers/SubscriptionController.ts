@@ -167,10 +167,25 @@ export const createWebhook = async (
 
   try {
     const gerencianet = Gerencianet(options);
+    console.log("Attempting to configure Gerencianet webhook with params:", params, "and body:", body);
     const create = await gerencianet.pixConfigWebhook(params, body);
+    console.log("Gerencianet webhook configured successfully:", create);
     return res.json(create);
   } catch (error) {
-    console.log(error);
+    console.error("Error creating webhook:", error);
+    if (error.response && error.response.data) {
+      // Handle Gerencianet API errors
+      return res.status(error.response.status || 500).json({
+        error: error.response.data.mensagem || error.response.data.message || "Erro na API Gerencianet",
+        details: error.response.data
+      });
+    } else if (error instanceof AppError) {
+      // Handle application-specific errors
+      return res.status(error.statusCode).json({ error: error.message });
+    } else {
+      // Handle unexpected errors
+      return res.status(500).json({ error: "Erro interno ao configurar o webhook." });
+    }
   }
 };
 
